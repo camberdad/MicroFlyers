@@ -106,7 +106,7 @@ function launch() {
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).add(new THREE.Vector3(0, 1.15, 4.3));
   setMode('playing');
-  notify(mouseFlight ? 'CURSOR STEERS · LEFT CLICK FIRES · FULL ROLLS ENABLED' : 'MANUAL FLIGHT · FULL ROLLS ENABLED', 3200);
+  notify(mouseFlight ? 'CURSOR STEERS · LEFT CLICK FIRES · CENTER TO LEVEL' : 'BANK TO TURN · RELEASE CONTROLS TO LEVEL', 3200);
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -156,7 +156,7 @@ function takeDamage(amount, reason) {
 }
 
 function readInput() {
-  input.pitch = THREE.MathUtils.clamp((keys.has('KeyW') ? 1 : 0) - (keys.has('KeyS') ? 1 : 0) - (mouseFlight ? steeringCurve(mouseY) : 0), -1, 1);
+  input.pitch = THREE.MathUtils.clamp((keys.has('KeyS') ? 1 : 0) - (keys.has('KeyW') ? 1 : 0) - (mouseFlight ? steeringCurve(mouseY) : 0), -1, 1);
   input.roll = THREE.MathUtils.clamp((keys.has('KeyA') ? 1 : 0) - (keys.has('KeyD') ? 1 : 0) - (mouseFlight ? steeringCurve(mouseX) : 0), -1, 1);
   input.yaw = (keys.has('KeyQ') ? 1 : 0) - (keys.has('KeyE') ? 1 : 0);
   input.boost = keys.has('ShiftLeft') || keys.has('ShiftRight'); input.brake = keys.has('Space');
@@ -195,8 +195,8 @@ function directionAfterImpact(state, normal) {
 
 function updateCamera(dt) {
   forwardVector(player, forward);
-  cameraUp.set(0, 1, 0).applyQuaternion(player.quaternion);
-  cameraDesired.set(0, 1.15, 4.3).applyQuaternion(player.quaternion).add(player.position);
+  cameraUp.set(0, 1, 0);
+  cameraDesired.copy(player.position).addScaledVector(forward, -4.3).addScaledVector(cameraUp, 1.15);
   // Shorten the chase arm before a wall can obscure the aircraft.
   const offset = cameraDesired.clone().sub(player.position);
   let distance = offset.length();
@@ -208,8 +208,7 @@ function updateCamera(dt) {
   cameraDesired.copy(player.position).addScaledVector(cameraRay.direction, distance);
   camera.position.lerp(cameraDesired, 1 - Math.exp(-8 * dt));
   cameraTarget.copy(player.position).addScaledVector(forward, 7).addScaledVector(cameraUp, .35);
-  // Follow the aircraft's up vector through vertical loops and inverted flight.
-  // Quaternion camera smoothing avoids the world-up flip at the top of a loop.
+  // Keep the horizon steady while the jet visibly banks into a casual turn.
   cameraRotation.lookAt(camera.position, cameraTarget, cameraUp);
   cameraOrientation.setFromRotationMatrix(cameraRotation);
   camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-10 * dt));
@@ -271,7 +270,7 @@ function toggleMouse() {
   $('mouse-button').innerHTML = `CURSOR STEERING <b>${mouseFlight ? 'ON' : 'OFF'}</b>`;
   $('mouse-button').setAttribute('aria-pressed', String(mouseFlight));
   setMode(mode);
-  notify(mouseFlight ? 'CURSOR STEERING · CENTER CURSOR TO STOP ROTATING' : 'KEYBOARD FLIGHT · FULL ROLL AND LOOPS');
+  notify(mouseFlight ? 'CURSOR STEERING · CENTER CURSOR TO LEVEL' : 'KEYBOARD FLIGHT · RELEASE CONTROLS TO LEVEL');
   renderer.domElement.focus({ preventScroll: true });
 }
 

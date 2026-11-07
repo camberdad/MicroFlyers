@@ -1,20 +1,20 @@
 {
-  "version": "V3",
-  "versionNumber": 3,
-  "assetVersion": "v3-e049427ac551",
-  "publishedAtUtc": "2026-11-07T04:17:31.884Z",
+  "version": "V4",
+  "versionNumber": 4,
+  "assetVersion": "v4-ac97691fdf70",
+  "publishedAtUtc": "2026-11-07T04:28:26.650Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v3/",
-  "description": "Cursor steering and unrestricted dogfighting",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v4/",
+  "description": "Configurable casual banking flight",
   "changes": [
-    "Make cursor steering active by default, with an on-screen steering cursor and separate gun reticle.",
-    "Sharpen pitch, roll and yaw response; full roll rate is approximately 218 degrees per second.",
-    "Remove Flight Assist, automatic leveling and pitch/bank limits entirely.",
-    "Enable continuous barrel rolls, vertical loops and inverted flight with direct quaternion controls.",
-    "Follow the aircraft through rolls and loops with a smooth quaternion chase camera.",
-    "Keep the existing cruise speed, boost/brake behavior, minimum airspeed and forward momentum.",
-    "Preserve keyboard controls and an M toggle for keyboard-only flying.",
-    "Publish V3 with live updates, change notes and a retained numbered runtime."
+    "Adapt the user's flightConfig example with pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 and maxPitch 0.4.",
+    "Accumulate pitch/bank input to the configured caps, and return those angles smoothly to neutral when input is released or the cursor is centered.",
+    "Make banking turn the aircraft automatically while Q/E provide extra rudder control.",
+    "Map W to nose down and S to nose up, matching the supplied example; retain intuitive cursor-up climbing.",
+    "Rebuild heading, pitch and roll together as a quaternion to avoid conflicting local rotation setters.",
+    "Keep a steady camera horizon while the aircraft visibly banks.",
+    "Preserve cursor steering by default and the existing cruise/boost/braking speed, minimum airspeed and momentum at the room's scale.",
+    "Publish V4 with live updates and retain V1, V2 and V3 unchanged."
   ],
   "files": [
     {
@@ -39,8 +39,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 8837,
-      "sha256": "8a310f595fa1e122d3bc07c2cee29508a6550d1c6396a3b8844b6eb84a0c9325"
+      "bytes": 8825,
+      "sha256": "976a9ba97e2a27925b4f954c90958213d26535d27569f1084e4a36e02ee5f557"
     },
     {
       "path": "src/aircraft.js",
@@ -59,13 +59,13 @@
     },
     {
       "path": "src/flight.js",
-      "bytes": 3903,
-      "sha256": "e1de4f14d4e1799e55a1c1a6e64b2ad33985d13b02bfad29f043dc28b41083da"
+      "bytes": 4374,
+      "sha256": "3f92af3b88194f996956646708bb2c13cd002ab8b904d1cd453b96e2c2e5554d"
     },
     {
       "path": "src/main.js",
-      "bytes": 19732,
-      "sha256": "45d1346bd07792dd26d94cd059114966cc531eced7092fb99078892af9f0b6e6"
+      "bytes": 19625,
+      "sha256": "82be68899c57d546e4e8afab8136da2f8bf44f66b6c97d105237f59980d9cad7"
     },
     {
       "path": "src/ui.js",
@@ -85,7 +85,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "434d6808ae1a0f7cfb4d8956e9b292cf7fe880ce7b34173c328903d150e483f4"
+      "sha256": "e42a68d7bc2ad010e343289d32c340148088b2ad5ca881b74305eb6c6b732b5e"
     },
     {
       "path": "src/world.js",

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/build/three.module.js';
-import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, CONTROL, steeringCurve } from '../src/flight.js';
+import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, flightConfig, steeringCurve } from '../src/flight.js';
 
 const neutral = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false };
 function fly(state, input, seconds, step = 1 / 120) {
@@ -20,7 +20,7 @@ test('afterburner accelerates; prolonged braking preserves minimum airspeed', ()
   assert.ok(state.speed >= FLIGHT.minSpeed && state.speed < FLIGHT.minSpeed + .001);
   assert.ok(state.velocity.length() >= FLIGHT.minSpeed - 1e-9);
 });
-test('W climbs, S dives, Q yaws left, E yaws right', () => {
+test('positive pitch climbs, negative pitch dives, and rudder turns in either direction', () => {
   for (const [input, axis, sign] of [[{pitch:1},'y',1],[{pitch:-1},'y',-1],[{yaw:1},'x',-1],[{yaw:-1},'x',1]]) {
     const state = createFlightState(new THREE.Vector3()); fly(state, { ...neutral, ...input }, 1);
     assert.ok(state.position[axis] * sign > .5, JSON.stringify(input));
@@ -33,7 +33,7 @@ test('banking turns while forward velocity retains gentle drift', () => {
   assert.ok(nose.angleTo(momentum) > .01);
   assert.ok(nose.angleTo(momentum) < .5);
 });
-test('sustained aerobatics keep quaternions finite and airspeed above stall', () => {
+test('sustained steering keeps quaternions finite and airspeed above stall', () => {
   const state = createFlightState(); fly(state, { ...neutral, pitch: 1, roll: -1, yaw: .8, brake: true }, 60);
   assert.ok(state.position.toArray().every(Number.isFinite));
   assert.ok(Math.abs(state.quaternion.length() - 1) < 1e-10);
@@ -47,25 +47,20 @@ test('swept projectiles hit a thin box even when both endpoints are outside', ()
   assert.ok(segmentHitsBox(new THREE.Vector3(), new THREE.Vector3(), box));
 });
 
-test('held roll completes a full barrel roll in under two seconds without an angle cap', () => {
-  const state = createFlightState(); let total = 0, inverted = false;
-  for (let i = 0; i < 216; i++) {
-    updateFlight(state, { ...neutral, roll: 1 }, 1 / 120);
-    total += state.angular.z / 120;
-    if (new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y < -.8) inverted = true;
-  }
-  assert.ok(total > Math.PI * 2); assert.ok(inverted);
-  assert.ok(Math.abs(state.angular.z - CONTROL.rollRate) < .001);
+test('held steering reaches the configured pitch/bank caps without inverting', () => {
+  const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:1 }, 6);
+  assert.ok(Math.abs(state.currentRoll - flightConfig.maxRoll) < 1e-9);
+  assert.ok(Math.abs(state.currentPitch - flightConfig.maxPitch) < 1e-9);
+  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .75);
 });
-test('centering the controls stops roll rate and preserves inverted flight without leveling', () => {
-  const state = createFlightState(); fly(state, { ...neutral, roll: 1 }, .8);
+test('neutral inputs level both axes and settle the banking turn', () => {
+  const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:-1 }, 1);
+  fly(state, neutral, 2);
+  const before = forwardVector(state);
   fly(state, neutral, 1);
-  const upBefore = new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y;
-  fly(state, neutral, 3);
-  const upAfter = new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y;
-  assert.ok(upBefore < -.8 && upAfter < -.8);
-  assert.ok(Math.abs(upAfter - upBefore) < 1e-5);
-  assert.ok(Math.abs(state.angular.z) < 1e-8);
+  assert.ok(Math.abs(state.currentRoll) < .0001 && Math.abs(state.currentPitch) < .0001);
+  assert.ok(before.angleTo(forwardVector(state)) < .001);
+  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .99999);
 });
 test('maneuvers do not alter the cruise, afterburner or braking speed model', () => {
   const straight = createFlightState(), turning = createFlightState();
@@ -79,11 +74,11 @@ test('mouse steering has a quiet center and fine symmetric control without reduc
   assert.ok(steeringCurve(.2) > .12 && steeringCurve(.2) < .2); assert.equal(steeringCurve(-.2), -steeringCurve(.2));
 });
 
-test('held pitch can fly a complete loop and remains pitched after release', () => {
-  const state = createFlightState(); let rotation = 0;
-  for (let i = 0; i < 420; i++) { updateFlight(state, { ...neutral, pitch:1 }, 1/120); rotation += state.angular.x/120; }
-  assert.ok(rotation > Math.PI * 2);
-  state.quaternion.setFromAxisAngle(new THREE.Vector3(1,0,0), .7); state.angular.set(0,0,0);
-  fly(state, neutral, 3);
-  assert.ok(Math.abs(forwardVector(state).y - Math.sin(.7)) < 1e-8);
+test('automatic leveling is consistent at different frame rates', () => {
+  const fast = createFlightState(), slow = createFlightState();
+  fast.quaternion.setFromEuler(new THREE.Euler(.3,0,-.5,'YXZ')); slow.quaternion.copy(fast.quaternion);
+  fly(fast, neutral, 2, 1/120); fly(slow, neutral, 2, 1/30);
+  assert.ok(Math.abs(fast.currentPitch - slow.currentPitch) < 1e-9);
+  assert.ok(Math.abs(fast.currentRoll - slow.currentRoll) < 1e-9);
+  assert.ok(Math.abs(fast.currentRoll - -.5 * Math.exp(-3.5*2)) < 1e-9);
 });

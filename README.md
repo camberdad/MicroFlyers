@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
 
-**Current release: V3.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V4.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -26,20 +26,20 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 
 | Input | Action |
 | --- | --- |
-| W / S | Pitch up / down |
+| W / S | Nose down / nose up, matching the supplied flight example |
 | A / D | Roll left / right; banking also gently turns the aircraft |
 | Q / E | Yaw left / right |
 | Shift | Accelerate / afterburner |
 | Space | Brake **and** fire, matching both requested Space bindings |
 | Left mouse button (hold) | Fire without braking |
-| Mouse movement (default) | Cursor above/below center pitches; sideways rolls. Keep it off center for continuous maneuvers |
+| Mouse movement (default) | Cursor above/below center climbs/dives; sideways banks and turns. Center the cursor to level out |
 | M or Cursor Steering button | Toggle cursor steering / keyboard-only flight |
 | Escape | Pause / resume; closes flight help first |
 | R | Restart mission |
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-Cursor steering is on by default. Move above/below center to pitch, or sideways to roll. Keep the cursor displaced to perform continuous barrel rolls and loops; return to center to stop rotating. The jet keeps its bank and pitch without automatically leveling. Controls are sharper, with unrestricted flight angles, a roughly 218°/second maximum roll rate, and an aircraft-following chase camera for vertical and inverted flight. W/S, A/D and Q/E still work, and M switches to keyboard-only flight. Speed, acceleration, braking, minimum airspeed and forward momentum preserve the original physics. The green cursor shows steering input; the gun reticle projects the actual firing direction. Four patrolling drones take three hits each and return fire. Furniture blocks shots. Collisions damage the hull. Switching away automatically pauses the game.
+V4 follows the user's configurable casual-flight example. A central `flightConfig` in `src/flight.js` sets pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 radians (~34°) and maxPitch 0.4 radians (~23°). Inputs accumulate pitch/bank until their limits; releasing an axis exponentially returns it to neutral. Banking automatically turns the jet, with Q/E adding rudder. Cursor steering stays on by default: above center climbs, below dives, and sideways banks into a turn. W pitches down and S up as in the supplied example. M switches to keyboard-only control. Heading, pitch and bank are rebuilt together as a quaternion to avoid conflicting local Euler setters; the camera keeps a steady horizon. Cruise remains 8.5 normalized world units/s (~58 cm/s), rather than the example's 50 world units/s, to preserve the room's existing flight scale. Boost, braking, minimum airspeed and momentum are retained. The green cursor shows steering input; the gun reticle shows firing direction. Four drones patrol and return fire; furniture blocks shots, collisions damage the hull, and switching away pauses the game.
 
 ## Assets and scale
 

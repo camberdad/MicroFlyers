@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101b26">
   <meta name="description" content="Small jet. Big room. Fly, explore, and dogfight in MicroFlyers, a miniature browser flight game.">
-  <title>MicroFlyers V3 — Small jet. Big room.</title>
-  <link rel="icon" href="./versions/v3/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./versions/v3/styles.css">
+  <title>MicroFlyers V4 — Small jet. Big room.</title>
+  <link rel="icon" href="./versions/v4/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./versions/v4/styles.css">
   <!-- Pinned local copies make GitHub Pages and embedded builds independent of a CDN.
        Equivalent CDN import map (keep every Three.js URL on the SAME version):
        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
@@ -17,7 +17,7 @@
        FBXLoader imports FFlate itself; do not load a separate global script.
   -->
   <script type="importmap">
-    {"imports":{"three":"./versions/v3/vendor/three/build/three.module.js","three/addons/":"./versions/v3/vendor/three/examples/jsm/"}}
+    {"imports":{"three":"./versions/v4/vendor/three/build/three.module.js","three/addons/":"./versions/v4/vendor/three/examples/jsm/"}}
   </script>
 </head>
 <body>
@@ -28,7 +28,7 @@
       <a class="brand" href="./" aria-label="MicroFlyers home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="m20 3 5 14 12 9-1 3-13-4-1 9 5 4H13l5-4-1-9-13 4-1-3 12-9Z"/></svg><span>MICRO<span class="brand-light">FLYERS</span><small>SMALL JET. BIG ROOM.</small></span></a>
       <div class="location"><span class="live-dot"></span> THE LIVING ROOM <span class="tag">AIRFIELD 01</span></div>
       <nav aria-label="Game settings">
-        <div class="version-badge" aria-label="Game version and update status"><strong id="version-label">V3</strong><span id="update-status" title="Checking for updates">LIVE</span></div>
+        <div class="version-badge" aria-label="Game version and update status"><strong id="version-label">V4</strong><span id="update-status" title="Checking for updates">LIVE</span></div>
         <button id="sound-button" class="icon-button" aria-label="Enable sound" title="Sound">♪<span id="sound-label">OFF</span></button>
         <button id="help-button" class="icon-button" aria-label="Show flight controls" title="Flight controls">?</button>
         <button id="fullscreen-button" class="icon-button fullscreen" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
@@ -59,7 +59,7 @@
       <div class="telemetry"><div class="speed"><span>AIRSPEED</span><strong id="speed">000</strong><small>CM / S</small><div class="speed-track"><i id="speed-bar"></i></div></div><div class="altitude"><span>ALTITUDE</span><strong id="altitude">0.0<small> M</small></strong><span id="flight-mode">CRUISE</span></div></div>
       <div class="hull"><span>AIRFRAME <strong id="health-label">100%</strong></span><div><i id="health-bar"></i></div><small id="hull-detail">SYSTEMS NOMINAL</small></div>
       <div class="radar-wrap"><canvas id="radar" width="240" height="240" aria-label="Radar showing nearby drones"></canvas><span>LOCAL AIRSPACE</span></div>
-      <div class="flight-toolbar"><span><kbd>SHIFT</kbd> BOOST</span><span><kbd>SPACE</kbd> BRAKE + FIRE</span><button id="mouse-button" aria-pressed="true">CURSOR STEERING <b>ON</b></button><span>FULL ROLLS + LOOPS</span><button id="pause-button"><kbd>ESC</kbd> PAUSE</button></div>
+      <div class="flight-toolbar"><span><kbd>SHIFT</kbd> BOOST</span><span><kbd>SPACE</kbd> BRAKE + FIRE</span><button id="mouse-button" aria-pressed="true">CURSOR STEERING <b>ON</b></button><span>BANK TO TURN</span><button id="pause-button"><kbd>ESC</kbd> PAUSE</button></div>
     </section>
 
     <section id="pause-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
@@ -69,12 +69,12 @@
       <div class="panel"><span id="result-eyebrow" class="eyebrow">MISSION COMPLETE</span><h2 id="result-title">Airspace secured.</h2><p id="result-detail">All four drones eliminated.</p><button id="again-button" class="primary-button">Fly again <span>↗</span></button><button id="explore-button" class="secondary-button">Keep exploring</button><button id="result-hangar-button" class="secondary-button">Return to hangar</button></div>
     </section>
     <section id="help-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
-      <div class="panel help-panel"><button id="close-help" class="close-button" aria-label="Close flight controls">×</button><span class="eyebrow">FLIGHT SCHOOL / 01</span><h2 id="help-title">Own the<br>dogfight.</h2><p>Move the cursor to steer. Hold it off center for<br>continuous rolls and loops. Your jet never self-levels.</p><dl><div><dt><kbd>MOUSE Y</kbd> / <kbd>W</kbd> <kbd>S</kbd></dt><dd>Pitch up / down · full loops</dd></div><div><dt><kbd>MOUSE X</kbd> / <kbd>A</kbd> <kbd>D</kbd></dt><dd>Roll left / right · full barrel rolls</dd></div><div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Rudder left / right</dd></div><div><dt><kbd>SHIFT</kbd></dt><dd>Afterburner</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Airbrake + fire</dd></div><div><dt><kbd>LEFT CLICK</kbd></dt><dd>Fire without braking</dd></div><div><dt><kbd>M</kbd></dt><dd>Cursor / keyboard steering</dd></div><div><dt><kbd>ESC</kbd></dt><dd>Pause / return to hangar</dd></div></dl><p class="fine-print">The green cursor controls steering; the gun reticle shows your shot direction. Move farther from center for a sharper maneuver. Bring the cursor back to center to stop rotating; your bank and pitch stay where you put them. R restarts, F opens fullscreen, and V toggles sound.</p><button id="help-done" class="primary-button">Got it <span>↗</span></button></div>
+      <div class="panel help-panel"><button id="close-help" class="close-button" aria-label="Close flight controls">×</button><span class="eyebrow">FLIGHT SCHOOL / 01</span><h2 id="help-title">Bank into<br>the dogfight.</h2><p>Bank to turn. Center the cursor or release the keys<br>and your jet smoothly returns to level flight.</p><dl><div><dt><kbd>MOUSE Y</kbd></dt><dd>Above center climbs / below dives</dd></div><div><dt><kbd>W</kbd> / <kbd>S</kbd></dt><dd>Nose down / nose up</dd></div><div><dt><kbd>MOUSE X</kbd> / <kbd>A</kbd> <kbd>D</kbd></dt><dd>Bank and turn left / right</dd></div><div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Extra rudder left / right</dd></div><div><dt><kbd>SHIFT</kbd></dt><dd>Afterburner</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Airbrake + fire</dd></div><div><dt><kbd>LEFT CLICK</kbd></dt><dd>Fire without braking</dd></div><div><dt><kbd>M</kbd></dt><dd>Cursor / keyboard steering</dd></div><div><dt><kbd>ESC</kbd></dt><dd>Pause / return to hangar</dd></div></dl><p class="fine-print">The green cursor controls steering; the gun reticle shows your shot direction. Banking is capped near 34° and climbing/diving near 23° for predictable room-scale flying. R restarts, F opens fullscreen, and V toggles sound.</p><button id="help-done" class="primary-button">Got it <span>↗</span></button></div>
     </section>
     <aside id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span id="update-message"></span><button id="update-action" class="hidden"></button><div id="update-progress" class="hidden"><i></i></div></aside>
     <div id="damage-flash" class="damage-flash" aria-hidden="true"></div>
     <noscript><div class="fatal-error">MicroFlyers needs JavaScript and a WebGL 2 capable browser.</div></noscript>
   </main>
-  <script type="module" src="./versions/v3/src/main.js"></script>
+  <script type="module" src="./versions/v4/src/main.js"></script>
 </body>
 </html>

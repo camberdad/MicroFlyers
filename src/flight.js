@@ -1,15 +1,23 @@
 import * as THREE from 'three';
 
-export const FLIGHT = Object.freeze({ minSpeed: 4.5, cruiseSpeed: 8.5, boostSpeed: 19, maxHealth: 100 });
-export const CONTROL = Object.freeze({ pitchRate: 2.1, rollRate: 3.8, yawRate: 1.2, response: 14 });
-const X = new THREE.Vector3(1, 0, 0);
-const Y = new THREE.Vector3(0, 1, 0);
-const Z = new THREE.Vector3(0, 0, 1);
-const turn = new THREE.Quaternion();
+// Same steering model as the supplied example. Speeds use this room's normalized
+// world units: 8.5 preserves the existing ~58 cm/s cruise instead of crossing the
+// entire room in two seconds at 50 world units/s.
+export const flightConfig = Object.freeze({
+  forwardSpeed: 8.5,
+  pitchSpeed: 1.5,
+  rollSpeed: 2.0,
+  yawSpeed: 1.0,
+  autoLevelSpeed: 3.5,
+  maxRoll: .6,
+  maxPitch: .4,
+  minSpeed: 4.5,
+  boostSpeed: 19,
+});
+export const FLIGHT = Object.freeze({ minSpeed: flightConfig.minSpeed, cruiseSpeed: flightConfig.forwardSpeed, boostSpeed: flightConfig.boostSpeed, maxHealth: 100 });
 const forward = new THREE.Vector3();
-const right = new THREE.Vector3();
-const up = new THREE.Vector3();
 const desiredVelocity = new THREE.Vector3();
+const attitude = new THREE.Euler(0, 0, 0, 'YXZ');
 export function steeringCurve(value, deadzone = .025) {
   const magnitude = Math.min(1, Math.max(0, (Math.abs(value) - deadzone) / (1 - deadzone)));
   return Math.sign(value) * magnitude ** 1.1;
@@ -20,6 +28,7 @@ export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
     position: position.clone(), quaternion: new THREE.Quaternion(),
     velocity: new THREE.Vector3(0, 0, -FLIGHT.cruiseSpeed),
     angular: new THREE.Vector3(), speed: FLIGHT.cruiseSpeed,
+    currentPitch: 0, currentRoll: 0,
     health: FLIGHT.maxHealth, invulnerable: 0,
   };
 }
@@ -27,21 +36,24 @@ export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
 /** Local aircraft axes: +X right, +Y up, -Z nose. dt is capped/substepped by the game loop. */
 export function updateFlight(state, input, dt) {
   if (dt <= 0) return;
-  // Direct angular-rate control, with no attitude limits or horizon correction.
-  // Centering the cursor stops rotation; it never rolls the wings back to level.
-  const response = 1 - Math.exp(-CONTROL.response * dt);
-  state.angular.x = THREE.MathUtils.lerp(state.angular.x, input.pitch * CONTROL.pitchRate, response);
-  state.angular.z = THREE.MathUtils.lerp(state.angular.z, input.roll * CONTROL.rollRate, response);
-  state.angular.y = THREE.MathUtils.lerp(state.angular.y, input.yaw * CONTROL.yawRate, response);
-  state.quaternion.multiply(turn.setFromAxisAngle(X, state.angular.x * dt));
-  state.quaternion.multiply(turn.setFromAxisAngle(Z, state.angular.z * dt));
-  state.quaternion.multiply(turn.setFromAxisAngle(Y, state.angular.y * dt));
-
-  // Coordinated banking adds a gentle world-space turn. Inertia lags the nose.
-  right.copy(X).applyQuaternion(state.quaternion);
-  up.copy(Y).applyQuaternion(state.quaternion);
-  const bankTurn = THREE.MathUtils.clamp(right.y, -1, 1) * 0.75 * Math.max(0, up.y);
-  state.quaternion.premultiply(turn.setFromAxisAngle(Y, bankTurn * dt)).normalize();
+  // Recover the heading from the actual orientation, including collision bounces.
+  // YXZ keeps heading independent of absolute pitch/bank; the pitch cap keeps it
+  // away from the singularity. Never mix incremental Euler rotations and setters.
+  attitude.setFromQuaternion(state.quaternion, 'YXZ');
+  const oldPitch = attitude.x, oldRoll = attitude.z;
+  const leveling = Math.exp(-flightConfig.autoLevelSpeed * dt);
+  state.currentPitch = THREE.MathUtils.clamp(
+    Math.abs(input.pitch) > 1e-4 ? oldPitch + input.pitch * flightConfig.pitchSpeed * dt : oldPitch * leveling,
+    -flightConfig.maxPitch, flightConfig.maxPitch);
+  state.currentRoll = THREE.MathUtils.clamp(
+    Math.abs(input.roll) > 1e-4 ? oldRoll + input.roll * flightConfig.rollSpeed * dt : oldRoll * leveling,
+    -flightConfig.maxRoll, flightConfig.maxRoll);
+  // Bank into a turn automatically; Q/E add independent rudder adjustments.
+  const yawRate = (state.currentRoll + input.yaw) * flightConfig.yawSpeed;
+  attitude.set(state.currentPitch, attitude.y + yawRate * dt, state.currentRoll, 'YXZ');
+  state.quaternion.setFromEuler(attitude).normalize();
+  state.angular.set((state.currentPitch - oldPitch) / dt, yawRate, (state.currentRoll - oldRoll) / dt);
+  // Keep the original acceleration, braking, minimum airspeed and velocity drift.
   const targetSpeed = input.brake ? FLIGHT.minSpeed : input.boost ? FLIGHT.boostSpeed : FLIGHT.cruiseSpeed;
   state.speed = THREE.MathUtils.lerp(state.speed, targetSpeed, 1 - Math.exp(-1.8 * dt));
   state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed);

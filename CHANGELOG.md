@@ -2,6 +2,17 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V4 — Configurable casual banking flight
+
+- Adapt the user's flightConfig example with pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 and maxPitch 0.4.
+- Accumulate pitch/bank input to the configured caps, and return those angles smoothly to neutral when input is released or the cursor is centered.
+- Make banking turn the aircraft automatically while Q/E provide extra rudder control.
+- Map W to nose down and S to nose up, matching the supplied example; retain intuitive cursor-up climbing.
+- Rebuild heading, pitch and roll together as a quaternion to avoid conflicting local rotation setters.
+- Keep a steady camera horizon while the aircraft visibly banks.
+- Preserve cursor steering by default and the existing cruise/boost/braking speed, minimum airspeed and momentum at the room's scale.
+- Publish V4 with live updates and retain V1, V2 and V3 unchanged.
+
 ## V3 — Cursor steering and unrestricted dogfighting
 
 - Make cursor steering active by default, with an on-screen steering cursor and separate gun reticle.
