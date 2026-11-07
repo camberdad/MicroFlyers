@@ -1,17 +1,24 @@
 import * as THREE from 'three';
 import { forwardVector, FLIGHT } from './flight.js';
-import { compassHeading,cardinalForHeading } from './hud-math.js';
+import { compassHeading,cardinalForHeading,enemyIndicator,spreadEdgeIndicators } from './hud-math.js';
 
 export const $ = id => document.getElementById(id);
 const projected = new THREE.Vector3();
 const forward = new THREE.Vector3();
 const right = new THREE.Vector3();
 const delta = new THREE.Vector3();
+const cameraPoint = new THREE.Vector3();
 const radar = $('radar').getContext('2d');
 let noticeTimeout, hitTimeout;
 const contactMarkers = Array.from({length:8},()=>{
   const marker = document.createElement('div'); marker.className = 'contact-marker hidden';
   marker.appendChild(document.createElement('span')); $('contacts').appendChild(marker); return marker;
+});
+const directionMarkers=Array.from({length:8},()=>{
+  const marker=document.createElement('div');marker.className='enemy-direction hidden';
+  const arrow=document.createElement('i');arrow.textContent='➤';
+  const label=document.createElement('span');const rear=document.createElement('small');
+  marker.append(arrow,label,rear);$('enemy-directions').appendChild(marker);return marker;
 });
 
 export function notify(message, duration = 2000, detail = '') {
@@ -72,34 +79,39 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('reticle').style.left = `${(projected.x * .5 + .5) * 100}%`;
   $('reticle').style.top = `${(-projected.y * .5 + .5) * 100}%`;
   $('reticle').classList.toggle('hidden', projected.z > 1 || projected.z < -1);
-  let best = null, bestScore = -1;
-  for (const drone of combat.drones) {
-    if (!drone.alive) continue;
-    delta.copy(drone.mesh.position).sub(state.position);
-    const score = delta.clone().normalize().dot(forward);
-    if (score > bestScore) { bestScore = score; best = drone; }
-  }
   const marker = $('target-marker');
-  if (locked) best = locked;
   marker.classList.toggle('locked', Boolean(locked));
   marker.classList.add('hidden');
-  if (best && bestScore > .15) {
-    projected.copy(best.mesh.position).project(camera);
-    if (Math.abs(projected.x) < .92 && Math.abs(projected.y) < .82 && projected.z > -1 && projected.z < 1) {
-      marker.classList.remove('hidden'); marker.style.left = `${(projected.x * .5 + .5) * 100}%`; marker.style.top = `${(-projected.y * .5 + .5) * 100}%`;
-      $('target-distance').textContent = `BANDIT ${String(combat.drones.indexOf(best)+1).padStart(2,'0')} / ${Math.round(best.mesh.position.distanceTo(state.position) / world.scale)} CM`;
-    }
-  }
   contactMarkers.forEach(contact=>contact.classList.add('hidden'));
+  directionMarkers.forEach(contact=>contact.classList.add('hidden'));
+  const width=innerWidth,height=innerHeight,edges=[];
   combat.drones.forEach((drone,i)=>{
-    const contact = contactMarkers[i]; contact.classList.add('hidden');
-    if (!drone.alive || drone===best) return;
-    projected.copy(drone.mesh.position).project(camera);
-    if (Math.abs(projected.x)>.9 || Math.abs(projected.y)>.8 || projected.z<-1 || projected.z>1) return;
-    contact.classList.remove('hidden');
-    contact.style.left = `${(projected.x*.5+.5)*100}%`; contact.style.top = `${(-projected.y*.5+.5)*100}%`;
-    contact.firstChild.textContent = `BANDIT ${String(i+1).padStart(2,'0')} / ${Math.round(drone.mesh.position.distanceTo(state.position)/world.scale)} CM`;
+    if(!drone.alive)return;
+    cameraPoint.copy(drone.mesh.position).applyMatrix4(camera.matrixWorldInverse);
+    const position=enemyIndicator(cameraPoint,{width,height,fov:camera.fov,near:camera.near,far:camera.far});
+    const id=String(i+1).padStart(2,'0'),distance=Math.round(drone.mesh.position.distanceTo(state.position)/world.scale);
+    if(position.onScreen){
+      const contact=drone===locked?marker:contactMarkers[i];
+      contact.classList.remove('hidden');contact.style.left=`${position.x}px`;contact.style.top=`${position.y}px`;
+      // Keep text readable at the viewport edges while the ring stays on target.
+      const label=contact.querySelector('span');
+      label.textContent=`${drone===locked?'BANDIT':'CONTACT'} ${id} · ${distance} CM`;
+      label.style.marginLeft=`${Math.max(90-position.x,Math.min(0,width-90-position.x))}px`;
+      label.style.top=position.y<32?'calc(100% + 8px)':'-24px';
+      if(drone===locked){
+        const status=$('target-lock-state');status.textContent=rearming?'TRACKING · REARMING':'LOCKED · RMB FIRE';
+        status.style.top=position.y>height-95?'-46px':position.y<32?'calc(100% + 30px)':'calc(100% + 7px)';
+      }
+    }else edges.push({...position,index:i,id,distance,locked:drone===locked});
   });
+  for(const position of spreadEdgeIndicators(edges,width,height)){
+    const arrow=directionMarkers[position.index];arrow.classList.remove('hidden');
+    arrow.classList.toggle('locked',position.locked);arrow.dataset.edge=position.edge;
+    arrow.style.left=`${position.x}px`;arrow.style.top=`${position.y}px`;
+    arrow.children[0].style.transform=`rotate(${position.angle}rad)`;
+    arrow.children[1].textContent=`${position.locked?(rearming?'TRACK ':'LOCK '):''}${position.id} · ${position.distance} CM`;
+    arrow.children[2].textContent=position.behind?'BEHIND':'';
+  }
   drawRadar(state,combat,locked,heading);
 }
 

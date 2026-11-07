@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V11.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V12.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -25,6 +25,8 @@ On Windows, you can also double-click **Start-MicroFlyers.cmd**. It uses an inst
 The interface adapts to smaller screens, but flight is designed for a desktop keyboard and mouse.
 
 ## Fly
+
+V12 adds a circular marker around every onscreen enemy. Amber circles identify contacts; a larger cyan double circle marks the actual missile target and shows **LOCKED · RMB FIRE**, or **TRACKING · REARMING** during reload. Lock still requires the existing range, facing and clear line of sight. Offscreen enemies have edge arrows with contact ID and distance, plus **BEHIND** for rear contacts. Rear bearings keep the correct left/right direction, and an exactly rearward target gives a right-turn hint. Crowded arrows spread along the edge; killed enemies and Free Fly leave no stale markers.
 
 V10 randomizes all career aircraft positions and headings together at each launch/retry. You start at least 20 world units from enemies, enemy pairs are at least nine units apart, and initial headings do not aim at another aircraft. The planner checks a six-unit clear departure lane against the actual map surfaces; it retries crowded arrangements without relaxing the rules. Free Fly keeps the map's usual peaceful launch location. Use radar to find opponents rather than expecting a target in front of takeoff.
 

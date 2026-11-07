@@ -1,17 +1,18 @@
 {
-  "version": "V11",
-  "versionNumber": 11,
-  "assetVersion": "v11-31f274f4efb6",
-  "publishedAtUtc": "2026-11-07T06:29:56.662Z",
+  "version": "V12",
+  "versionNumber": 12,
+  "assetVersion": "v12-814624bbc414",
+  "publishedAtUtc": "2026-11-07T06:45:58.888Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v11/",
-  "description": "Slower flight and half-size player jet",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v12/",
+  "description": "Enemy lock circles and offscreen direction arrows",
   "changes": [
-    "Reduce player cruise, minimum and afterburner speeds by 30%: 5.95, 3.15 and 13.3 world units/second respectively, in both Career and Free Fly.",
-    "Halve the player's length, wingspan and height relative to V10, changing the miniature design scale from 1:100 to 1:200 (JET_SCALE 0.204).",
-    "Halve the player's central collision radius to 0.065 and resize player projectiles, missiles and nose launch offsets to match.",
-    "Keep the existing chase-camera distance so the smaller aircraft remains visibly half-size; update scale labels and the airspeed meter's maximum.",
-    "Preserve steering, held throttle, momentum response, both maps, randomized career starts, forward-only enemy guns, GP/upgrades, saves and live updates."
+    "Track every onscreen enemy plane with a clear amber circle and its contact number/distance.",
+    "Show a larger cyan double circle around the actual missile target, with LOCKED · RMB FIRE or TRACKING · REARMING status tied to the existing line-of-sight and reload logic.",
+    "Add screen-edge arrows for every live enemy outside the camera view. Include contact number, distance and a BEHIND label for rear contacts; highlight the locked target's arrow.",
+    "Calculate directions in chase-camera space so left/right bearings stay correct behind the aircraft, with a right-turn hint for directly rearward contacts.",
+    "Spread clustered arrows along their edge, keep labels inside the viewport and remove indicators immediately when enemies are destroyed or Free Fly begins.",
+    "Preserve aircraft size/speed, flight controls, randomized waves, GP/upgrades, saves, both maps and live updates."
   ],
   "files": [
     {
@@ -46,8 +47,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 13891,
-      "sha256": "efb0a0b8f8c9aa3cb5675c571a29b0b6d277290c1e0e38c4882a36ddcca7a551"
+      "bytes": 14144,
+      "sha256": "891fc3d2cac38568b07a8c0c0ae7d4c781ae12d621ab65a0ea4ec5f0c2b76241"
     },
     {
       "path": "src/aircraft.js",
@@ -76,13 +77,13 @@
     },
     {
       "path": "src/hud-math.js",
-      "bytes": 303,
-      "sha256": "bc17a42d9b8af8264dc06d20958917cb3178551b88401c94724d97704a15209d"
+      "bytes": 2641,
+      "sha256": "befaf4e69de00d2ddc4bf981d2079b202b718212162bfd2cfcfd91dfd8697bf1"
     },
     {
       "path": "src/hud.css",
-      "bytes": 16526,
-      "sha256": "f00c2104a702c4a7ca2e9ac9b2d2b2d682ebc57ce529874669af3cd533b597a1"
+      "bytes": 19273,
+      "sha256": "a43d8ad9c4e26d0f1355e0ca89400f39c8410343f4d83ececb64555ccc241235"
     },
     {
       "path": "src/input.js",
@@ -116,8 +117,8 @@
     },
     {
       "path": "src/ui.js",
-      "bytes": 8550,
-      "sha256": "0a3be7fdf4b3fdfaee13978004835e6c7d6053895cf7f15418ec3ebd394383c0"
+      "bytes": 9523,
+      "sha256": "dbb6cef51fe9c6b28f2452e87186c6764d8621359dad85e903c7dcbff04c132c"
     },
     {
       "path": "src/update-policy.js",
@@ -132,7 +133,7 @@
     {
       "path": "src/version.js",
       "bytes": 135,
-      "sha256": "e3fabb59647b89e66447e8e3077d8e453253379b7b59b2cc180267eb78c74caf"
+      "sha256": "1c8a11e6cf25dfc6ba42c9fb62d2c9bb9c4863ed9cf499b84f49cbcf5301e26f"
     },
     {
       "path": "src/world.js",

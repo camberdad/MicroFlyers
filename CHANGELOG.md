@@ -2,6 +2,15 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V12 — Enemy lock circles and offscreen direction arrows
+
+- Track every onscreen enemy plane with a clear amber circle and its contact number/distance.
+- Show a larger cyan double circle around the actual missile target, with LOCKED · RMB FIRE or TRACKING · REARMING status tied to the existing line-of-sight and reload logic.
+- Add screen-edge arrows for every live enemy outside the camera view. Include contact number, distance and a BEHIND label for rear contacts; highlight the locked target's arrow.
+- Calculate directions in chase-camera space so left/right bearings stay correct behind the aircraft, with a right-turn hint for directly rearward contacts.
+- Spread clustered arrows along their edge, keep labels inside the viewport and remove indicators immediately when enemies are destroyed or Free Fly begins.
+- Preserve aircraft size/speed, flight controls, randomized waves, GP/upgrades, saves, both maps and live updates.
+
 ## V11 — Slower flight and half-size player jet
 
 - Reduce player cruise, minimum and afterburner speeds by 30%: 5.95, 3.15 and 13.3 world units/second respectively, in both Career and Free Fly.
