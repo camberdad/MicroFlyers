@@ -33,6 +33,8 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('kills').textContent = String(combat.kills).padStart(2, '0');
   $('timer').textContent = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(Math.floor(elapsed % 60)).padStart(2, '0')}`;
   [...$('mission-progress').children].forEach((el, i) => el.classList.toggle('done', i < combat.kills));
+  const locked = combat.getMissileTarget(state);
+  $('missile-status').textContent = combat.missileCooldown > 0 ? `REARM ${combat.missileCooldown.toFixed(1)}s` : locked ? 'LOCK READY' : 'SEARCHING';
 
   // Project the actual gun line; screen center alone would miss due to chase-camera parallax.
   forwardVector(state, forward);
@@ -48,12 +50,14 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
     if (score > bestScore) { bestScore = score; best = drone; }
   }
   const marker = $('target-marker');
+  if (locked) best = locked;
+  marker.classList.toggle('locked', Boolean(locked));
   marker.classList.add('hidden');
   if (best && bestScore > .15) {
     projected.copy(best.mesh.position).project(camera);
     if (Math.abs(projected.x) < .92 && Math.abs(projected.y) < .82 && projected.z > -1 && projected.z < 1) {
       marker.classList.remove('hidden'); marker.style.left = `${(projected.x * .5 + .5) * 100}%`; marker.style.top = `${(-projected.y * .5 + .5) * 100}%`;
-      $('target-distance').textContent = `DRONE ${Math.round(best.mesh.position.distanceTo(state.position) / world.scale)} CM`;
+      $('target-distance').textContent = `${locked ? 'LOCK' : 'DRONE'} ${Math.round(best.mesh.position.distanceTo(state.position) / world.scale)} CM`;
     }
   }
   drawRadar(state, combat);

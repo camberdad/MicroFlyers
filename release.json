@@ -1,20 +1,19 @@
 {
-  "version": "V4",
-  "versionNumber": 4,
-  "assetVersion": "v4-ac97691fdf70",
-  "publishedAtUtc": "2026-11-07T04:28:26.650Z",
+  "version": "V5",
+  "versionNumber": 5,
+  "assetVersion": "v5-2b6141785e1d",
+  "publishedAtUtc": "2026-11-07T04:51:37.751Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v4/",
-  "description": "Configurable casual banking flight",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v5/",
+  "description": "Keyboard flight, wider turns and homing missiles",
   "changes": [
-    "Adapt the user's flightConfig example with pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 and maxPitch 0.4.",
-    "Accumulate pitch/bank input to the configured caps, and return those angles smoothly to neutral when input is released or the cursor is centered.",
-    "Make banking turn the aircraft automatically while Q/E provide extra rudder control.",
-    "Map W to nose down and S to nose up, matching the supplied example; retain intuitive cursor-up climbing.",
-    "Rebuild heading, pitch and roll together as a quaternion to avoid conflicting local rotation setters.",
-    "Keep a steady camera horizon while the aircraft visibly banks.",
-    "Preserve cursor steering by default and the existing cruise/boost/braking speed, minimum airspeed and momentum at the room's scale.",
-    "Publish V4 with live updates and retain V1, V2 and V3 unchanged."
+    "Remove cursor steering and its toggle/indicator entirely; use keyboard-only flight.",
+    "Invert W/S: W climbs and S dives. Keep A/D banking, Q/E rudder, boost/braking and automatic leveling.",
+    "Increase turn radius by 50% at the same speed and bank, using turnRadiusMultiplier 1.5.",
+    "Launch a homing missile with right click; left click remains the gun.",
+    "Acquire a living drone ahead within range and line of sight, with a lock indicator and 1.8-second missile reload.",
+    "Add visible rockets and trails, limited homing turn speed, furniture collisions and a five-second missile lifetime.",
+    "Preserve prior versions, live updates, and the stable website/embed URL."
   ],
   "files": [
     {
@@ -39,8 +38,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 8825,
-      "sha256": "976a9ba97e2a27925b4f954c90958213d26535d27569f1084e4a36e02ee5f557"
+      "bytes": 8688,
+      "sha256": "b6722b57e6da4da24d768b1ee02ea06faf9e3e986d7a1b102d9d515d3cd91afb"
     },
     {
       "path": "src/aircraft.js",
@@ -54,23 +53,28 @@
     },
     {
       "path": "src/combat.js",
-      "bytes": 8032,
-      "sha256": "a8298da2e56b53ff6bb46987fef17d9c6bdc03dfe1e52efa282126ef214ab509"
+      "bytes": 12272,
+      "sha256": "6db825396e59c999b0dbfc3d749deb5043b6f56a7683079a718b4f65748d236d"
     },
     {
       "path": "src/flight.js",
-      "bytes": 4374,
-      "sha256": "3f92af3b88194f996956646708bb2c13cd002ab8b904d1cd453b96e2c2e5554d"
+      "bytes": 4242,
+      "sha256": "7fdba2a85dc1b28cb869a89d6f7fd11b8993c17ee3c2adf15e2d3a5352db22ce"
+    },
+    {
+      "path": "src/input.js",
+      "bytes": 463,
+      "sha256": "bd9ecfd16c5c3f9e9964fa5e5e541b0eec07f64b41b28d487c9ba0de79e60124"
     },
     {
       "path": "src/main.js",
-      "bytes": 19625,
-      "sha256": "82be68899c57d546e4e8afab8136da2f8bf44f66b6c97d105237f59980d9cad7"
+      "bytes": 18245,
+      "sha256": "6752124f9610919298cd3c52a90297e375a7f55f83993aebed0cf045406f63f9"
     },
     {
       "path": "src/ui.js",
-      "bytes": 4836,
-      "sha256": "e22734d6fc4d7f7f88591169f5f0a8ddb98b8361867fad024cdca2b9cdd3e88c"
+      "bytes": 5141,
+      "sha256": "1e1798a80009b82dfd3bc5fccf78c416a56ecfac8b6388802ff0bb3f889d3151"
     },
     {
       "path": "src/update-policy.js",
@@ -85,7 +89,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "e42a68d7bc2ad010e343289d32c340148088b2ad5ca881b74305eb6c6b732b5e"
+      "sha256": "86d683bb89141777047126491a89db3024c5adee87b5a829fa057bc6b574bf3c"
     },
     {
       "path": "src/world.js",
@@ -94,8 +98,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 13750,
-      "sha256": "f653fb530c0176ab684c3bfce53dc62962121531188e753433dd620bbe99ceb5"
+      "bytes": 13998,
+      "sha256": "b6c024bd6bfceaa10a0b513a92a4ea841e8eaa0d40490bf141b9bb1ee297968d"
     },
     {
       "path": "vendor/three/LICENSE",

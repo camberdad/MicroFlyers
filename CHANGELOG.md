@@ -2,6 +2,16 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V5 — Keyboard flight, wider turns and homing missiles
+
+- Remove cursor steering and its toggle/indicator entirely; use keyboard-only flight.
+- Invert W/S: W climbs and S dives. Keep A/D banking, Q/E rudder, boost/braking and automatic leveling.
+- Increase turn radius by 50% at the same speed and bank, using turnRadiusMultiplier 1.5.
+- Launch a homing missile with right click; left click remains the gun.
+- Acquire a living drone ahead within range and line of sight, with a lock indicator and 1.8-second missile reload.
+- Add visible rockets and trails, limited homing turn speed, furniture collisions and a five-second missile lifetime.
+- Preserve prior versions, live updates, and the stable website/embed URL.
+
 ## V4 — Configurable casual banking flight
 
 - Adapt the user's flightConfig example with pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 and maxPitch 0.4.

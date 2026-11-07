@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
 
-**Current release: V4.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V5.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -26,20 +26,21 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 
 | Input | Action |
 | --- | --- |
-| W / S | Nose down / nose up, matching the supplied flight example |
+| W / S | Climb / dive (inverted from V4) |
 | A / D | Roll left / right; banking also gently turns the aircraft |
 | Q / E | Yaw left / right |
 | Shift | Accelerate / afterburner |
 | Space | Brake **and** fire, matching both requested Space bindings |
 | Left mouse button (hold) | Fire without braking |
-| Mouse movement (default) | Cursor above/below center climbs/dives; sideways banks and turns. Center the cursor to level out |
-| M or Cursor Steering button | Toggle cursor steering / keyboard-only flight |
+| Right mouse button | Launch a homing missile when a drone is locked |
 | Escape | Pause / resume; closes flight help first |
 | R | Restart mission |
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-V4 follows the user's configurable casual-flight example. A central `flightConfig` in `src/flight.js` sets pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 radians (~34°) and maxPitch 0.4 radians (~23°). Inputs accumulate pitch/bank until their limits; releasing an axis exponentially returns it to neutral. Banking automatically turns the jet, with Q/E adding rudder. Cursor steering stays on by default: above center climbs, below dives, and sideways banks into a turn. W pitches down and S up as in the supplied example. M switches to keyboard-only control. Heading, pitch and bank are rebuilt together as a quaternion to avoid conflicting local Euler setters; the camera keeps a steady horizon. Cruise remains 8.5 normalized world units/s (~58 cm/s), rather than the example's 50 world units/s, to preserve the room's existing flight scale. Boost, braking, minimum airspeed and momentum are retained. The green cursor shows steering input; the gun reticle shows firing direction. Four drones patrol and return fire; furniture blocks shots, collisions damage the hull, and switching away pauses the game.
+V5 uses keyboard-only flight: W climbs, S dives, A/D bank, and Q/E add rudder. Mouse movement never steers. `flightConfig.turnRadiusMultiplier` is 1.5, giving a 50% wider turn radius than V4 at the same speed and bank. The capped pitch/bank, automatic leveling, steady camera horizon and speed/momentum model are retained. Cruise remains 8.5 normalized world units/s (~58 cm/s), with boost and braking unchanged.
+
+Left click fires the gun. Right click launches a homing missile toward a living drone ahead within 65 world units and clear line of sight. The HUD shows LOCK READY or the 1.8-second reload countdown. Missiles turn at a limited rate, leave a visible trail, destroy a drone on direct impact, and expire after five seconds. Furniture blocks locks and missiles; a destroyed target is not tracked further. The gun reticle still shows firing direction. Switching away pauses the game.
 
 ## Assets and scale
 
@@ -56,10 +57,11 @@ V4 follows the user's configurable casual-flight example. A central `flightConfi
 | --- | --- |
 | `index.html`, `styles.css` | Landing screen, instruments, radar canvas, help, pause, results, responsive layout |
 | `src/main.js` | Separate initialization, asset loading, and requestAnimationFrame phases; input, game states, collision response, chase camera |
+| `src/input.js` | Keyboard-only axes, W/S mapping, boost and brake input |
 | `src/world.js` | FBX loading, normalization, lighting, generated materials, per-mesh static Box3 colliders |
 | `src/flight.js` | Quaternion flight, pitch/roll/yaw, minimum speed, boost/brake, momentum, swept segment helper |
 | `src/aircraft.js` | Procedural micro jet model |
-| `src/combat.js` | Four drone patrols, enemy fire, nose-fired projectiles, nearest swept hit, damage events and particles |
+| `src/combat.js` | Four drone patrols, gunfire, homing missiles, lock selection, reloads, trails, nearest swept hits and damage |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
 | `src/audio.js` | Optional synthesized audio, started from a user gesture |
 | `scripts/serve.mjs` | Dependency-free local HTTP server |

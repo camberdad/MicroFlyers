@@ -8,6 +8,7 @@ export const flightConfig = Object.freeze({
   pitchSpeed: 1.5,
   rollSpeed: 2.0,
   yawSpeed: 1.0,
+  turnRadiusMultiplier: 1.5,
   autoLevelSpeed: 3.5,
   maxRoll: .6,
   maxPitch: .4,
@@ -18,10 +19,6 @@ export const FLIGHT = Object.freeze({ minSpeed: flightConfig.minSpeed, cruiseSpe
 const forward = new THREE.Vector3();
 const desiredVelocity = new THREE.Vector3();
 const attitude = new THREE.Euler(0, 0, 0, 'YXZ');
-export function steeringCurve(value, deadzone = .025) {
-  const magnitude = Math.min(1, Math.max(0, (Math.abs(value) - deadzone) / (1 - deadzone)));
-  return Math.sign(value) * magnitude ** 1.1;
-}
 
 export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
   return {
@@ -49,7 +46,7 @@ export function updateFlight(state, input, dt) {
     Math.abs(input.roll) > 1e-4 ? oldRoll + input.roll * flightConfig.rollSpeed * dt : oldRoll * leveling,
     -flightConfig.maxRoll, flightConfig.maxRoll);
   // Bank into a turn automatically; Q/E add independent rudder adjustments.
-  const yawRate = (state.currentRoll + input.yaw) * flightConfig.yawSpeed;
+  const yawRate = (state.currentRoll + input.yaw) * flightConfig.yawSpeed / flightConfig.turnRadiusMultiplier;
   attitude.set(state.currentPitch, attitude.y + yawRate * dt, state.currentRoll, 'YXZ');
   state.quaternion.setFromEuler(attitude).normalize();
   state.angular.set((state.currentPitch - oldPitch) / dt, yawRate, (state.currentRoll - oldRoll) / dt);

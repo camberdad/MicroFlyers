@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/build/three.module.js';
-import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, flightConfig, steeringCurve } from '../src/flight.js';
+import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, flightConfig } from '../src/flight.js';
 
 const neutral = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false };
 function fly(state, input, seconds, step = 1 / 120) {
@@ -69,9 +69,15 @@ test('maneuvers do not alter the cruise, afterburner or braking speed model', ()
     assert.equal(straight.speed, turning.speed);
   }
 });
-test('mouse steering has a quiet center and fine symmetric control without reducing full travel', () => {
-  assert.equal(steeringCurve(.02), 0); assert.equal(steeringCurve(1), 1); assert.equal(steeringCurve(-1), -1);
-  assert.ok(steeringCurve(.2) > .12 && steeringCurve(.2) < .2); assert.equal(steeringCurve(-.2), -steeringCurve(.2));
+test('a cruise-speed full-bank circle has the wider V5 turning radius', () => {
+  const state = createFlightState(new THREE.Vector3());
+  state.quaternion.setFromEuler(new THREE.Euler(0,0,flightConfig.maxRoll,'YXZ'));
+  let minX = 0, maxX = 0;
+  for (let i=0;i<2160;i++) {
+    updateFlight(state,{...neutral,roll:1},1/120);
+    minX = Math.min(minX,state.position.x); maxX = Math.max(maxX,state.position.x);
+  }
+  assert.ok(maxX-minX > 40 && maxX-minX < 44, `Circle diameter ${maxX-minX}`);
 });
 
 test('automatic leveling is consistent at different frame rates', () => {

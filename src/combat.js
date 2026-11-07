@@ -14,19 +14,29 @@ const direction = new THREE.Vector3();
 const playerBox = new THREE.Box3();
 const sweep = new THREE.Box3();
 const collisionPoint = new THREE.Vector3();
+export const MISSILE = Object.freeze({ speed:32, turnRate:3.5, cooldown:1.8, life:5, range:65, coneCos:.1, damage:3 });
+const noseAxis = new THREE.Vector3(0,0,-1);
+const missileBodyGeometry = new THREE.CylinderGeometry(.045,.045,.48,8).rotateX(Math.PI/2);
+const missileNoseGeometry = new THREE.ConeGeometry(.045,.16,8).rotateX(-Math.PI/2);
+const missileFinGeometry = new THREE.BoxGeometry(.22,.018,.14);
+const missileFlameGeometry = new THREE.ConeGeometry(.05,.26,8).rotateX(Math.PI/2);
+const missileMaterial = new THREE.MeshStandardMaterial({color:0xe7ebd7,metalness:.45,roughness:.35});
+const missileGlow = new THREE.MeshBasicMaterial({color:0xffb56b});
+const trailMaterial = new THREE.LineBasicMaterial({color:0xffc887,transparent:true,opacity:.85});
 
 export class Combat {
   constructor(scene, world, events) {
     this.scene = scene; this.world = world; this.events = events;
     this.drones = []; this.bullets = []; this.particles = [];
-    this.kills = 0; this.fireCooldown = 0; this.elapsed = 0;
+    this.kills = 0; this.fireCooldown = 0; this.missileCooldown = 0; this.elapsed = 0;
   }
 
   reset() {
+    for (const bullet of this.bullets) if (bullet.trail) { bullet.trail.removeFromParent(); bullet.trail.geometry.dispose(); }
     for (const object of [...this.drones.map(d => d.mesh), ...this.bullets.map(b => b.mesh), ...this.particles.map(p => p.mesh)]) object.removeFromParent();
     // Drone geometry/materials are disposed on restart; shared shot/effect assets stay cached.
     for (const drone of this.drones) drone.mesh.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
-    this.drones = []; this.bullets = []; this.particles = []; this.kills = 0; this.elapsed = 0; this.fireCooldown = 0;
+    this.drones = []; this.bullets = []; this.particles = []; this.kills = 0; this.elapsed = 0; this.fireCooldown = 0; this.missileCooldown = 0;
     for (let i = 0; i < 4; i++) this.spawnDrone(i);
   }
 
@@ -73,6 +83,46 @@ export class Combat {
     this.bullets.push({ mesh, previous: origin.clone(), velocity, hostile, life: hostile ? 3.5 : 1.5 });
   }
 
+  getMissileTarget(state) {
+    const forward = forwardVector(state);
+    let best = null, score = -Infinity;
+    for (const drone of this.drones) {
+      if (!drone.alive) continue;
+      const offset = drone.mesh.position.clone().sub(state.position), distance = offset.length();
+      if (distance < 1 || distance > MISSILE.range) continue;
+      const alignment = offset.divideScalar(distance).dot(forward);
+      if (alignment < MISSILE.coneCos) continue;
+      if (this.world.colliders.some(c => segmentHitsBox(state.position, drone.mesh.position, c.box))) continue;
+      const candidate = alignment - distance / (MISSILE.range * 10);
+      if (candidate > score) { score = candidate; best = drone; }
+    }
+    return best;
+  }
+
+  fireMissile(state) {
+    if (this.missileCooldown > 0) { this.events.weaponNotice?.('MISSILES REARMING'); return false; }
+    const target = this.getMissileTarget(state);
+    if (!target) { this.events.weaponNotice?.('NO MISSILE LOCK · FACE A DRONE'); return false; }
+    if (this.bullets.length >= 120) return false;
+    const forward = forwardVector(state), origin = state.position.clone().addScaledVector(forward,.9);
+    const mesh = new THREE.Group();
+    mesh.add(new THREE.Mesh(missileBodyGeometry,missileMaterial));
+    const nose = new THREE.Mesh(missileNoseGeometry,missileMaterial); nose.position.z = -.3;
+    const fin = new THREE.Mesh(missileFinGeometry,missileMaterial); fin.position.z = .15;
+    const verticalFin = fin.clone(); verticalFin.rotation.z = Math.PI/2;
+    const flame = new THREE.Mesh(missileFlameGeometry,missileGlow); flame.position.z = .36;
+    mesh.add(nose,fin,verticalFin,flame); mesh.position.copy(origin);
+    mesh.quaternion.setFromUnitVectors(noseAxis,forward);
+    const points = new Float32Array(90);
+    for (let i=0;i<points.length;i+=3) origin.toArray(points,i);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.BufferAttribute(points,3).setUsage(THREE.DynamicDrawUsage));
+    const trail = new THREE.Line(geometry,trailMaterial); trail.frustumCulled = false;
+    this.scene.add(mesh,trail);
+    this.bullets.push({mesh,trail,target,missile:true,damage:MISSILE.damage,previous:origin.clone(),velocity:forward.multiplyScalar(MISSILE.speed),hostile:false,life:MISSILE.life});
+    this.missileCooldown = MISSILE.cooldown; this.events.missileShot?.(); return true;
+  }
+
   burst(position, count = 12) {
     for (let i = 0; i < count; i++) {
       const mesh = new THREE.Mesh(sparkGeometry, sparkMaterial); mesh.position.copy(position);
@@ -83,6 +133,7 @@ export class Combat {
 
   update(dt, player, active = true) {
     this.elapsed += dt; this.fireCooldown = Math.max(0, this.fireCooldown - dt);
+    this.missileCooldown = Math.max(0, this.missileCooldown - dt);
     playerBox.setFromCenterAndSize(player.position, playerSize);
     for (const drone of this.drones) {
       if (!drone.alive) continue;
@@ -110,8 +161,19 @@ export class Combat {
     }
     for (let i = this.bullets.length - 1; i >= 0; i--) {
       const bullet = this.bullets[i];
+      if (bullet.missile && bullet.target.alive) {
+        const desired = bullet.target.mesh.position.clone().sub(bullet.mesh.position).normalize();
+        const rotation = new THREE.Quaternion().setFromUnitVectors(noseAxis,desired);
+        bullet.mesh.quaternion.rotateTowards(rotation,MISSILE.turnRate*dt);
+        bullet.velocity.copy(noseAxis).applyQuaternion(bullet.mesh.quaternion).multiplyScalar(MISSILE.speed);
+      }
       bullet.previous.copy(bullet.mesh.position);
       bullet.mesh.position.addScaledVector(bullet.velocity, dt); bullet.life -= dt;
+      if (bullet.trail) {
+        const attribute = bullet.trail.geometry.attributes.position;
+        attribute.array.copyWithin(3,0,attribute.array.length-3);
+        bullet.mesh.position.toArray(attribute.array,0); attribute.needsUpdate = true;
+      }
       const start = bullet.previous, end = bullet.mesh.position;
       sweep.setFromPoints([start, end]).expandByScalar(.045);
       // Find the FIRST obstruction on the segment, so shots cannot hit through walls.
@@ -133,14 +195,18 @@ export class Combat {
         const impact = ray.at(nearest, new THREE.Vector3());
         if (hit === 'player') this.events.damage?.(10, 'INCOMING FIRE');
         else if (hit !== 'world') {
-          hit.health--; this.events.hit?.(); this.burst(impact, 5);
+          hit.health -= bullet.damage ?? 1; this.events.hit?.(); this.burst(impact, 5);
           if (hit.health <= 0) {
             hit.alive = false; hit.mesh.visible = false; this.kills++;
             this.burst(hit.mesh.position, 25); this.events.kill?.(this.kills);
           }
-        } else this.burst(impact, 2);
+        } else this.burst(impact, bullet.missile ? 10 : 2);
       }
-      if (bullet.life <= 0) { bullet.mesh.removeFromParent(); this.bullets.splice(i, 1); }
+      if (bullet.life <= 0) {
+        bullet.mesh.removeFromParent();
+        if (bullet.trail) { bullet.trail.removeFromParent(); bullet.trail.geometry.dispose(); }
+        this.bullets.splice(i, 1);
+      }
     }
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i]; p.life -= dt; p.mesh.position.addScaledVector(p.velocity, dt);

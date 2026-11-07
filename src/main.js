@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { initWorld, loadAirfield, isSafePosition } from './world.js';
 import { createJet } from './aircraft.js';
-import { createFlightState, updateFlight, forwardVector, steeringCurve } from './flight.js';
+import { createFlightState, updateFlight, forwardVector } from './flight.js';
+import { readKeyboardFlight } from './input.js';
 import { Combat } from './combat.js';
 import { AudioEngine } from './audio.js';
 import { $, updateHUD, notify, hitMarker, flashDamage } from './ui.js';
@@ -10,7 +11,7 @@ import { LiveUpdates } from './updates.js';
 let scene, camera, renderer, aircraft, world, combat;
 let player = createFlightState();
 let mode = 'loading', helpPreviousMode = null, elapsed = 0, previousTime = 0;
-let mouseFlight = true, mouseFire = false, mouseX = 0, mouseY = 0;
+let mouseFire = false, missileRequested = false;
 let hudAccumulator = 0, simulationTime = 0, missionPending = false;
 const keys = new Set();
 const audio = new AudioEngine();
@@ -48,6 +49,8 @@ async function init() {
   }
   combat = new Combat(scene, world, {
     shot: () => audio.tone(720, .075, 'triangle', .22),
+    missileShot: () => { audio.tone(150, .3, 'sawtooth', .4); notify('HOMING MISSILE AWAY', 1300); },
+    weaponNotice: message => notify(message, 1200),
     hit: () => { hitMarker(); audio.tone(330, .06, 'square', .14); },
     kill: count => {
       audio.tone(95, .38, 'sawtooth', .45);
@@ -70,9 +73,6 @@ async function init() {
 function setMode(next) {
   mode = next; $('app').dataset.state = next;
   $('app').classList.toggle('playing', next !== 'intro' && next !== 'loading');
-  const cursorActive = mouseFlight && (next === 'playing' || next === 'exploring');
-  $('app').classList.toggle('cursor-flight', cursorActive);
-  $('steering-cursor').classList.toggle('hidden', !cursorActive);
   updates.setState(next);
 }
 
@@ -90,8 +90,7 @@ function returnToHangar() {
 }
 
 function resetInput() {
-  keys.clear(); mouseFire = false; mouseX = mouseY = 0;
-  $('steering-cursor').style.left = '50%'; $('steering-cursor').style.top = '50%';
+  keys.clear(); mouseFire = false; missileRequested = false;
 }
 
 function launch() {
@@ -106,7 +105,7 @@ function launch() {
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).add(new THREE.Vector3(0, 1.15, 4.3));
   setMode('playing');
-  notify(mouseFlight ? 'CURSOR STEERS · LEFT CLICK FIRES · CENTER TO LEVEL' : 'BANK TO TURN · RELEASE CONTROLS TO LEVEL', 3200);
+  notify('W CLIMBS · S DIVES · RIGHT CLICK LAUNCHES A HOMING MISSILE', 3200);
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -156,10 +155,7 @@ function takeDamage(amount, reason) {
 }
 
 function readInput() {
-  input.pitch = THREE.MathUtils.clamp((keys.has('KeyS') ? 1 : 0) - (keys.has('KeyW') ? 1 : 0) - (mouseFlight ? steeringCurve(mouseY) : 0), -1, 1);
-  input.roll = THREE.MathUtils.clamp((keys.has('KeyA') ? 1 : 0) - (keys.has('KeyD') ? 1 : 0) - (mouseFlight ? steeringCurve(mouseX) : 0), -1, 1);
-  input.yaw = (keys.has('KeyQ') ? 1 : 0) - (keys.has('KeyE') ? 1 : 0);
-  input.boost = keys.has('ShiftLeft') || keys.has('ShiftRight'); input.brake = keys.has('Space');
+  readKeyboardFlight(keys, input);
   input.fire = mouseFire || keys.has('Space');
 }
 
@@ -232,6 +228,7 @@ function animate(timestamp) {
       updatePlayerCollision();
       if (mode !== 'playing' && mode !== 'exploring') break;
       if (input.fire) combat.shoot(player);
+      if (missileRequested) { combat.fireMissile(player); missileRequested = false; }
       combat.update(step, player, true);
       if (missionPending && mode === 'playing') { missionPending = false; finish(true); }
     }
@@ -265,15 +262,6 @@ async function toggleSound() {
   } catch { notify('AUDIO UNAVAILABLE IN THIS BROWSER'); }
   if (mode === 'playing' || mode === 'exploring') renderer.domElement.focus({ preventScroll: true });
 }
-function toggleMouse() {
-  mouseFlight = !mouseFlight; mouseX = mouseY = 0;
-  $('mouse-button').innerHTML = `CURSOR STEERING <b>${mouseFlight ? 'ON' : 'OFF'}</b>`;
-  $('mouse-button').setAttribute('aria-pressed', String(mouseFlight));
-  setMode(mode);
-  notify(mouseFlight ? 'CURSOR STEERING · CENTER CURSOR TO LEVEL' : 'KEYBOARD FLIGHT · RELEASE CONTROLS TO LEVEL');
-  renderer.domElement.focus({ preventScroll: true });
-}
-
 function bindEvents() {
   $('launch-button').addEventListener('click', launch);
   $('pause-button').addEventListener('click', pause); $('resume-button').addEventListener('click', resume);
@@ -288,7 +276,6 @@ function bindEvents() {
   });
   $('help-button').addEventListener('click', showHelp); $('close-help').addEventListener('click', closeHelp); $('help-done').addEventListener('click', closeHelp);
   $('sound-button').addEventListener('click', toggleSound); $('fullscreen-button').addEventListener('click', fullscreen);
-  $('mouse-button').addEventListener('click', toggleMouse);
   const flightCodes = new Set(['KeyW','KeyS','KeyA','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight','Space']);
   addEventListener('keydown', event => {
     if (event.code === 'Tab') {
@@ -314,29 +301,22 @@ function bindEvents() {
     if (event.target instanceof HTMLElement && ['BUTTON','A','INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)) return;
     const active = mode === 'playing' || mode === 'exploring';
     if (active && flightCodes.has(event.code)) { event.preventDefault(); keys.add(event.code); }
-    if (event.code === 'KeyM' && active) toggleMouse();
     if (event.code === 'KeyR' && world && mode !== 'loading') launch();
     if (event.code === 'KeyF') fullscreen(); if (event.code === 'KeyV') toggleSound();
   });
   addEventListener('keyup', event => { keys.delete(event.code); });
   renderer.domElement.addEventListener('pointerdown', event => {
-    if (event.button !== 0 || (mode !== 'playing' && mode !== 'exploring')) return;
-    event.preventDefault(); renderer.domElement.focus({ preventScroll: true }); mouseFire = true;
+    if ((event.button !== 0 && event.button !== 2) || (mode !== 'playing' && mode !== 'exploring')) return;
+    event.preventDefault(); renderer.domElement.focus({ preventScroll: true });
+    if (event.button === 0) mouseFire = true;
+    else missileRequested = true;
   });
-  addEventListener('pointerup', () => { mouseFire = false; });
-  addEventListener('pointercancel', () => { mouseFire = false; });
-  renderer.domElement.addEventListener('pointermove', event => {
-    if (!mouseFlight) return;
-    const rect = renderer.domElement.getBoundingClientRect();
-    // Full authority at 65% of the distance from screen center to an edge.
-    const x = (event.clientX - rect.left) / rect.width;
-    const y = (event.clientY - rect.top) / rect.height;
-    mouseX = THREE.MathUtils.clamp((x - .5) * 2 / .65, -1, 1);
-    mouseY = THREE.MathUtils.clamp((y - .5) * 2 / .65, -1, 1);
-    $('steering-cursor').style.left = `${x * 100}%`;
-    $('steering-cursor').style.top = `${y * 100}%`;
+  renderer.domElement.addEventListener('contextmenu', event => {
+    event.preventDefault();
   });
-  renderer.domElement.addEventListener('pointerleave', resetInput);
+  addEventListener('pointerup', event => { if (event.button === 0) mouseFire = false; });
+  addEventListener('pointercancel', () => { mouseFire = false; missileRequested = false; });
+  renderer.domElement.addEventListener('pointerleave', () => { mouseFire = false; });
   addEventListener('blur', () => { resetInput(); pause(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInput(); pause(); } });
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });

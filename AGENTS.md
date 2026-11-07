@@ -2,7 +2,7 @@
 
 The user requested that every new game version be numbered, shown on screen, published to GitHub with its changes, and delivered to existing website embeds through live updates.
 
-Flight direction (latest user-provided example, V4): cursor steering is the default; use a central flightConfig with pitchSpeed 1.5, rollSpeed 2.0, yawSpeed 1.0, autoLevelSpeed 3.5, maxRoll 0.6 and maxPitch 0.4. Bank automatically turns the aircraft, and neutral inputs return pitch/bank to level. W pitches down and S up, matching that example. Keep cursor-up climbing, Q/E rudder, and the existing map-scaled speed/momentum. This supersedes V3's unrestricted-flight direction; preserve V3 in its numbered folder.
+Flight direction (latest requests, V5): keyboard-only steering; remove cursor steering entirely. W climbs and S dives, A/D bank and turn, Q/E add rudder. Increase turning radius (V5 uses a 1.5 radius multiplier) while retaining V4's capped pitch/bank, neutral leveling and speed/momentum. Left click fires the gun; right click launches a homing missile when a visible drone is locked. Preserve prior releases unchanged.
 
 - Stable repository: `https://github.com/camberdad/MicroFlyers`.
 - Stable game/embed URL: `https://camberdad.github.io/MicroFlyers/`.
