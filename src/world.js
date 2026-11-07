@@ -133,6 +133,7 @@ export function prepareAirfield(room,mapId='living') {
   const surfaceTree = new SurfaceIndex(room);
   const root = new THREE.Group();root.add(room);
   return {map,root,room,colliders,bounds,scale,meshCount,surfaceTree,
+    flightArea:mapId==='dining'?new THREE.Box3(sourcePoint(390,0,-1035),sourcePoint(1000,297,-600)):bounds.clone(),
     spawn:mapId==='dining'?sourcePoint(720,150,-990):new THREE.Vector3(-10,16,42),
     heading:mapId==='dining'?Math.PI:0,
     showcase:mapId==='dining'?sourcePoint(730,135,-890):new THREE.Vector3(-13,14.7,35.5),

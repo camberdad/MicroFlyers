@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V9.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V10.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -25,6 +25,10 @@ On Windows, you can also double-click **Start-MicroFlyers.cmd**. It uses an inst
 The interface adapts to smaller screens, but flight is designed for a desktop keyboard and mouse.
 
 ## Fly
+
+V10 randomizes all career aircraft positions and headings together at each launch/retry. You start at least 20 world units from enemies, enemy pairs are at least nine units apart, and initial headings do not aim at another aircraft. The planner checks a six-unit clear departure lane against the actual map surfaces; it retries crowded arrangements without relaxing the rules. Free Fly keeps the map's usual peaceful launch location. Use radar to find opponents rather than expecting a target in front of takeoff.
+
+Enemy planes move forward along their noses and steer gradually. They may fire only when you are within a 10-degree forward cone, within range, unobstructed by scenery and their gun is ready. Bullets originate at the visible nose and travel straight forward, with no turret aiming or side/rear shots. The first two rounds still have no incoming fire.
 
 Choose **Free Fly** for peaceful exploration with no enemies, objectives or damage. Choose **Career** for 30 rounds of enemy-plane waves on either map. Rounds 1–2 have a single slow, one-hit practice plane that does not fire. Later rounds gradually add planes (up to eight at once), waves (one in rounds 1–10, two in 11–20, three in 21–30), stronger enemies, faster patrols and more accurate/frequent incoming fire. The campaign contains 60 waves and finishes at round 30.
 

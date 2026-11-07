@@ -2,6 +2,15 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V10 — Randomized wave starts and forward-only enemy guns
+
+- Randomize the player's and every enemy's career starting position and heading at each wave launch or retry, on both maps.
+- Keep the player at least 20 world units from each enemy, enemies at least 9 units apart, and prevent aircraft from initially aiming at each other. Validate furniture clearance and six units of clear departure space before launching the whole wave.
+- Remove the fixed, nose-on practice target arrangement. Keep the opening rounds harmless and slow, with enemies found through exploration and radar.
+- Make enemy planes fly along their actual nose and turn gradually toward patrol waypoints or the player, rather than sliding along a fixed orbit or instantly swiveling to fire.
+- Fire enemy guns only when the player is within a narrow 10-degree forward cone, in range, visible through the scenery and the gun has reloaded. Shots originate at the nose and travel forward; no side or rear turret fire.
+- Preserve the 30-round difficulty curve, GP/upgrades, saved career progress, Free Fly, forgiving scenery contact and live updates.
+
 ## V9 — Free Fly, 30-round Career and GP upgrades
 
 - Add two hangar modes on both maps: peaceful Free Fly with no enemies or damage, and a saved 30-round Career with waves of enemy planes.

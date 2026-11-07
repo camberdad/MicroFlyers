@@ -1,20 +1,18 @@
 {
-  "version": "V9",
-  "versionNumber": 9,
-  "assetVersion": "v9-6f4e5ef095fe",
-  "publishedAtUtc": "2026-11-07T06:09:53.689Z",
+  "version": "V10",
+  "versionNumber": 10,
+  "assetVersion": "v10-13f0afba25bc",
+  "publishedAtUtc": "2026-11-07T06:20:34.194Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v9/",
-  "description": "Free Fly, 30-round Career and GP upgrades",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v10/",
+  "description": "Randomized wave starts and forward-only enemy guns",
   "changes": [
-    "Add two hangar modes on both maps: peaceful Free Fly with no enemies or damage, and a saved 30-round Career with waves of enemy planes.",
-    "Begin with one slow, one-hit practice plane and no incoming fire in rounds 1–2. Place opening practice targets in a clear lane ahead of takeoff.",
-    "Gradually increase enemy count from 1 to 8, waves per round from 1 to 3, enemy hull strength, patrol speed, projectile speed/damage and firing accuracy/frequency. The full career contains 60 waves and ends after round 30.",
-    "Award and immediately bank 25–50 GP per career kill. Keep earned GP after a defeat or return to the hangar; resume the current uncleared wave after reloading.",
-    "Add a GP upgrade hangar accessible before launch and between waves: five shot levels increase gun/missile damage and firing rate; five armor levels add 30 hull points each, up to 250.",
-    "Show round, wave, target count, GP and actual hull capacity in the HUD; repair/rearm at each wave launch. Offer the next wave, retry, upgrades or peaceful flying after a sortie.",
-    "Save career GP, levels, kills and next-wave progress locally in this browser. If storage is blocked, keep session play available and state that progress is not saved.",
-    "Preserve V7 flight controls, both V8 maps, 1:100 scale, forgiving scenery contact, live updates and every prior version."
+    "Randomize the player's and every enemy's career starting position and heading at each wave launch or retry, on both maps.",
+    "Keep the player at least 20 world units from each enemy, enemies at least 9 units apart, and prevent aircraft from initially aiming at each other. Validate furniture clearance and six units of clear departure space before launching the whole wave.",
+    "Remove the fixed, nose-on practice target arrangement. Keep the opening rounds harmless and slow, with enemies found through exploration and radar.",
+    "Make enemy planes fly along their actual nose and turn gradually toward patrol waypoints or the player, rather than sliding along a fixed orbit or instantly swiveling to fire.",
+    "Fire enemy guns only when the player is within a narrow 10-degree forward cone, in range, visible through the scenery and the gun has reloaded. Shots originate at the nose and travel forward; no side or rear turret fire.",
+    "Preserve the 30-round difficulty curve, GP/upgrades, saved career progress, Free Fly, forgiving scenery contact and live updates."
   ],
   "files": [
     {
@@ -49,8 +47,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 13744,
-      "sha256": "77954d40c1d8c88bc333795e8932d7c3b5057c6192bcc60a458b278e1d2498ea"
+      "bytes": 13891,
+      "sha256": "48f2425d3d5a181b6fa79124be1c65cf0f854c2f58de693ff283998b66058e2a"
     },
     {
       "path": "src/aircraft.js",
@@ -69,8 +67,8 @@
     },
     {
       "path": "src/combat.js",
-      "bytes": 14687,
-      "sha256": "1e1ff29c7c9ee8d5cb38985ce97dd8f6ad72bb5cb947ad0d9f5cebd3d99ab440"
+      "bytes": 16460,
+      "sha256": "3f4fa1b5b7e95e35bec6ed16b9e29d831ad0a24d260e9e224ec9d528ea5bdf83"
     },
     {
       "path": "src/flight.js",
@@ -94,8 +92,8 @@
     },
     {
       "path": "src/main.js",
-      "bytes": 25571,
-      "sha256": "ef044876e2d0b268591bc9076ffba8be7f3e25432d1b64acd62600035a6139f5"
+      "bytes": 25991,
+      "sha256": "e1989a887b9df08afcbbd9b2b1260fe929d8e32232d84f8cbf221b2eb733dc58"
     },
     {
       "path": "src/maps.js",
@@ -106,6 +104,11 @@
       "path": "src/scenery-collision.js",
       "bytes": 2600,
       "sha256": "62f0186418556a41b4dcdceeaab3029bfdc4505aec45a9588a09f1fbab71e250"
+    },
+    {
+      "path": "src/spawns.js",
+      "bytes": 2780,
+      "sha256": "a17ae317fd3d4020bd799889155caaac399fded644342279887164cb0b015488"
     },
     {
       "path": "src/surface-index.js",
@@ -129,13 +132,13 @@
     },
     {
       "path": "src/version.js",
-      "bytes": 134,
-      "sha256": "f4288d2b33aec0e4f97d1a33bdc307e822be3ee2783ef0104741c2540dd4ba6d"
+      "bytes": 135,
+      "sha256": "1ae0d3739cd60aa93f8934aa4dc10a7bd558269f8937f4c9a51d9052a3f27a8b"
     },
     {
       "path": "src/world.js",
-      "bytes": 10479,
-      "sha256": "46987c2c453ef12e5c98c27c3c9dc9fd36744374eacd0f7b6727314b5e6d7010"
+      "bytes": 10595,
+      "sha256": "6cbbc306bc1ec5aab70252d75577cb9e235da0ec3054d79c9e04cd7ec371325e"
     },
     {
       "path": "styles.css",

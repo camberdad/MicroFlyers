@@ -3,6 +3,7 @@ import { forwardVector, segmentHitsBox } from './flight.js';
 import { isSafePosition } from './world.js';
 import { PLAYER_CORE_RADIUS } from './maps.js';
 import { createJet } from './aircraft.js';
+import { randomAirPoint, spawnForward } from './spawns.js';
 
 const bulletGeometry = new THREE.CylinderGeometry(.018, .018, .8, 5);
 bulletGeometry.rotateX(Math.PI / 2);
@@ -17,6 +18,7 @@ const playerBox = new THREE.Box3();
 const sweep = new THREE.Box3();
 const collisionPoint = new THREE.Vector3();
 export const MISSILE = Object.freeze({ speed:32, turnRate:3.5, cooldown:1.8, life:5, range:65, coneCos:.1, damage:3 });
+export const ENEMY_GUN = Object.freeze({coneCos:Math.cos(10*Math.PI/180),noseOffset:.78,range:55});
 const noseAxis = new THREE.Vector3(0,0,-1);
 const missileBodyGeometry = new THREE.CylinderGeometry(.045,.045,.48,8).rotateX(Math.PI/2);
 const missileNoseGeometry = new THREE.ConeGeometry(.045,.16,8).rotateX(-Math.PI/2);
@@ -57,23 +59,20 @@ export class Combat {
     if(this.config.planes){
       for(const child of [...group.children])child.removeFromParent();
       shell.geometry.dispose();shell.material.dispose();ring.geometry.dispose();ring.material.dispose();eye.geometry.dispose();eye.material.dispose();
-      const plane=createJet(true);plane.rotation.y=Math.PI;group.add(plane);
+      const plane=createJet(true);group.add(plane);
     }
     const drone = { mesh: group, ring:this.config.planes?null:ring, health: this.config.health, phase: index * Math.PI*2 / Math.max(1,this.config.count) + .4,
       radiusX: 18 + index%4 * 2, radiusZ: 25 + index%4 * 2,
-      height: 16 + index%4 * 2.5, cooldown: this.config.fireInterval+index*.4, box: new THREE.Box3(), alive: true };
-    // First practice target appears clearly ahead of the launch path.
-    if(this.config.planes && this.config.count===1)drone.phase=0;
-    if(this.config.planes&&this.config.count===1&&this.world.spawn){
-      const nose=new THREE.Vector3(0,0,-1).applyAxisAngle(new THREE.Vector3(0,1,0),this.world.heading??0);
-      for(const distance of [16,14,12,10,8]){
-        const anchor=this.world.spawn.clone().addScaledVector(nose,distance);
-        if(isSafePosition(this.world,anchor,.8)&&!this.world.colliders.some(c=>segmentHitsBox(this.world.spawn,anchor,c.box))){drone.practiceAnchor=anchor;break;}
-      }
-    }
-    this.patrolPosition(drone, 0, group.position);
+      height: 16 + index%4 * 2.5, cooldown: this.config.fireInterval+index*.4, box: new THREE.Box3(), alive: true,
+      age:0,velocity:new THREE.Vector3(),waypoint:new THREE.Vector3(),retarget:0,aimOffset:new THREE.Vector3() };
+    const spawn=this.config.spawns?.[index];
+    if(spawn){
+      group.position.copy(spawn.position);group.rotation.y=spawn.heading;
+      drone.waypoint.copy(spawn.position).addScaledVector(spawnForward(spawn),6);
+      drone.retarget=2.5;
+    }else this.patrolPosition(drone, 0, group.position);
     // Guarantee a clear spawn even if the supplied map is edited later.
-    for (let attempt = 0; attempt < 30 && !isSafePosition(this.world, group.position); attempt++) {
+    for (let attempt = 0; !spawn && attempt < 30 && !isSafePosition(this.world, group.position); attempt++) {
       drone.phase += .4; this.patrolPosition(drone, 0, group.position);
       if (attempt > 15) { drone.height += .3; group.position.y = drone.height; }
     }
@@ -83,12 +82,50 @@ export class Combat {
 
   patrolPosition(drone, time, target) {
     const angle = time * (this.config?.patrolSpeed??.105) + drone.phase;
-    if(drone.practiceAnchor)return target.copy(drone.practiceAnchor).add(new THREE.Vector3(Math.sin(angle)*1.3,Math.sin(angle*.7)*.3,0));
     if(this.world.patrol){
       const p=this.world.patrol;
       return target.copy(p.center).add(new THREE.Vector3(Math.sin(angle)*(p.radiusX+drone.phase*.3),Math.sin(angle*1.7)*p.vertical+drone.phase*.25,Math.cos(angle)*p.radiusZ));
     }
     return target.set(Math.sin(angle) * drone.radiusX, drone.height + Math.sin(angle * 1.7) * 2.2, Math.cos(angle) * drone.radiusZ - 5);
+  }
+
+  chooseWaypoint(drone) {
+    for(let i=0;i<60;i++){
+      const point=randomAirPoint(this.world);
+      if(point.distanceToSquared(drone.mesh.position)>36&&isSafePosition(this.world,point,1))return point;
+    }
+    return drone.mesh.position.clone().addScaledVector(forwardVector(drone.mesh),4);
+  }
+
+  updateEnemyFlight(drone,player,dt,active) {
+    drone.age+=dt;drone.retarget-=dt;
+    const before=drone.mesh.position.clone(),nose=forwardVector(drone.mesh);
+    const blocked=!isSafePosition(this.world,before.clone().addScaledVector(nose,2),.8);
+    if(drone.retarget<=0||before.distanceToSquared(drone.waypoint)<9){
+      drone.waypoint.copy(this.chooseWaypoint(drone));drone.retarget=2+Math.random()*3;
+      drone.aimOffset.set(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(this.config.aimError);
+    }
+    const canPursue=active&&this.config.attacks&&drone.age>2.5&&!blocked&&before.distanceToSquared(player.position)<65**2;
+    const target=canPursue?player.position.clone().addScaledVector(player.velocity,before.distanceTo(player.position)/this.config.bulletSpeed*.45).add(drone.aimOffset):drone.waypoint;
+    if(blocked&&drone.retarget>1){drone.waypoint.copy(this.chooseWaypoint(drone));drone.retarget=1;}
+    const rotation=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(before,target,new THREE.Vector3(0,1,0)));
+    const turnRate=.45+this.config.patrolSpeed*4;
+    drone.mesh.quaternion.rotateTowards(rotation,turnRate*dt);
+    forwardVector(drone.mesh,nose);
+    const candidate=before.clone().addScaledVector(nose,(2+this.config.patrolSpeed*25)*dt);
+    if(isSafePosition(this.world,candidate,.7))drone.mesh.position.copy(candidate);
+    drone.velocity.copy(drone.mesh.position).sub(before).divideScalar(Math.max(dt,.000001));
+  }
+
+  tryEnemyShot(drone,player) {
+    if(!drone.alive||!this.config.attacks||drone.cooldown>0||this.bullets.length>=120)return false;
+    const nose=forwardVector(drone.mesh),toPlayer=player.position.clone().sub(drone.mesh.position),distance=toPlayer.length();
+    if(distance<2||distance>ENEMY_GUN.range||nose.dot(toPlayer.divideScalar(distance))<ENEMY_GUN.coneCos)return false;
+    const origin=drone.mesh.position.clone().addScaledVector(nose,ENEMY_GUN.noseOffset);
+    if(this.world.colliders.some(c=>segmentHitsBox(drone.mesh.position,player.position,c.box)))return false;
+    // Bullet direction is the aircraft's actual -Z nose, never a turret vector.
+    this.addBullet(origin,nose.multiplyScalar(this.config.bulletSpeed).add(drone.velocity),true);
+    drone.cooldown=this.config.fireInterval*(.85+Math.random()*.3);return true;
   }
 
   shoot(state) {
@@ -165,27 +202,20 @@ export class Combat {
     playerBox.setFromCenterAndSize(player.position, playerSize);
     for (const drone of this.drones) {
       if (!drone.alive) continue;
-      const target = this.patrolPosition(drone, this.elapsed, new THREE.Vector3());
-      if (isSafePosition(this.world, target, .6)) {
-        direction.copy(target).sub(drone.mesh.position);
-        if (direction.lengthSq() > .001) drone.mesh.lookAt(target);
-        drone.mesh.position.lerp(target, 1 - Math.exp(-3 * dt));
+      if(this.config.planes)this.updateEnemyFlight(drone,player,dt,active);
+      else {
+        const target = this.patrolPosition(drone, this.elapsed, new THREE.Vector3());
+        if (isSafePosition(this.world, target, .6)) {
+          direction.copy(target).sub(drone.mesh.position);
+          if(direction.lengthSq()>.001)drone.mesh.quaternion.setFromRotationMatrix(new THREE.Matrix4().lookAt(drone.mesh.position,target,new THREE.Vector3(0,1,0)));
+          drone.mesh.position.lerp(target, 1 - Math.exp(-3 * dt));
+        }
       }
       if(drone.ring)drone.ring.rotation.y += dt * 1.7;
       drone.box.setFromCenterAndSize(drone.mesh.position, enemySize);
       if (!active) continue;
       drone.cooldown -= dt;
-      const distance = drone.mesh.position.distanceTo(player.position);
-      if (this.config.attacks && drone.cooldown <= 0 && distance < 55 && distance > 2) {
-        drone.cooldown = this.config.fireInterval*(.85+Math.random()*.3);
-        const lead = player.position.clone().addScaledVector(player.velocity, distance / this.config.bulletSpeed * .65);
-        lead.add(new THREE.Vector3(Math.random()-.5,Math.random()-.5,Math.random()-.5).multiplyScalar(this.config.aimError));
-        direction.copy(lead).sub(drone.mesh.position).normalize();
-        // Furniture blocks enemy fire as well as player shots.
-        if (!this.world.colliders.some(c => segmentHitsBox(drone.mesh.position, player.position, c.box))) {
-          this.addBullet(drone.mesh.position.clone(), direction.clone().multiplyScalar(this.config.bulletSpeed), true);
-        }
-      }
+      this.tryEnemyShot(drone,player);
       // Physical contact is forgiving; only hostile projectiles damage the hull.
     }
     for (let i = this.bullets.length - 1; i >= 0; i--) {

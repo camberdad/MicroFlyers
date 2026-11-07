@@ -7,15 +7,26 @@ import { isSafePosition,prepareAirfield } from '../src/world.js';
 import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js';
 import {Combat} from '../src/combat.js';
 import {roundConfig} from '../src/career.js';
-import {createFlightState} from '../src/flight.js';
+import {planWaveSpawns,SPAWN_RULES,spawnForward,hasDepartureClearance} from '../src/spawns.js';
 
 function checkCareerSpawns(world){
   const combat=new Combat(new THREE.Scene(),world,{});
-  combat.reset(roundConfig(1));
-  const player=createFlightState(world.spawn);player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),world.heading);
-  assert.ok(combat.getMissileTarget(player),'opening practice target is visible from takeoff');
-  combat.reset(roundConfig(30));assert.equal(combat.drones.length,8);
-  assert.ok(combat.drones.every(d=>isSafePosition(world,d.mesh.position,.6)),'final-round planes spawn clear');
+  for(let seed=1;seed<=16;seed++){
+    let value=seed;const random=()=>{value=(value*1664525+1013904223)>>>0;return value/4294967296;};
+    const count=seed%2?1:8,plan=planWaveSpawns(world,count,random);
+    assert.ok(hasDepartureClearance(world,plan.player));
+    for(const [i,enemy] of plan.enemies.entries()){
+      assert.ok(hasDepartureClearance(world,enemy));
+      const offset=enemy.position.clone().sub(plan.player.position),gap=offset.length();
+      assert.ok(gap>=SPAWN_RULES.playerGap);offset.divideScalar(gap);
+      assert.ok(spawnForward(plan.player).dot(offset)<=SPAWN_RULES.facingCos);
+      assert.ok(spawnForward(enemy).dot(offset.negate())<=SPAWN_RULES.facingCos);
+      for(const other of plan.enemies.slice(0,i))assert.ok(enemy.position.distanceTo(other.position)>=SPAWN_RULES.enemyGap);
+    }
+    combat.reset({...roundConfig(count===1?1:30),spawns:plan.enemies});
+    assert.equal(combat.drones.length,count);
+    assert.ok(combat.drones.every((d,i)=>d.mesh.position.equals(plan.enemies[i].position)),'spawn plan is applied without orbit snapping');
+  }
   combat.reset({count:0});
 }
 

@@ -10,6 +10,7 @@ import { LiveUpdates } from './updates.js';
 import { MAPS, PLAYER_CORE_RADIUS } from './maps.js';
 import { resolveSceneryContact } from './scenery-collision.js';
 import { Career, roundConfig, loadoutFor, upgradeCost, MAX_UPGRADE } from './career.js';
+import { planWaveSpawns } from './spawns.js';
 
 let careerStorage;
 try{careerStorage=localStorage;}catch{/* Embedded play still works without storage. */}
@@ -187,12 +188,17 @@ function launch() {
   if (!world || switchingMap) return;
   if(selectedMode==='career'&&career.state.completed)return;
   const upgrades=loadoutFor(career.state);
+  let spawns;
+  if(selectedMode==='career'){
+    try{spawns=planWaveSpawns(world,roundConfig(career.state.round).count);}
+    catch(error){notify('TAKEOFF DELAYED',4000,error.message);return;}
+  }
   sortie=selectedMode==='career'?{round:career.state.round,wave:career.state.wave,config:roundConfig(career.state.round),earned:0}:null;
-  player = createFlightState(world.spawn);
+  player = createFlightState(spawns?.player.position??world.spawn);
   player.maxHealth=selectedMode==='career'?upgrades.maxHealth:100;player.health=player.maxHealth;
-  player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),world.heading);
+  player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),spawns?.player.heading??world.heading);
   player.velocity.copy(forwardVector(player)).multiplyScalar(player.speed);
-  combat.reset(sortie?{...sortie.config,loadout:upgrades}:{count:0}); elapsed = 0; simulationTime = 0; missionPending = false;
+  combat.reset(sortie?{...sortie.config,spawns:spawns.enemies,loadout:upgrades}:{count:0}); elapsed = 0; simulationTime = 0; missionPending = false;
   resetInput();
   for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label', 'pause-panel', 'result-panel', 'help-panel','shop-panel']) $(id).classList.add('hidden');
   $('hud').classList.remove('hidden');
@@ -205,8 +211,9 @@ function launch() {
   aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.visible = true;
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).addScaledVector(forwardVector(player),-3.2);camera.position.y+=.9;
+  camera.lookAt(player.position.clone().addScaledVector(forwardVector(player),9));camera.updateMatrixWorld();
   setMode(sortie?'playing':'exploring');
-  notify(sortie?`ROUND ${sortie.round} · WAVE ${sortie.wave}`:'FREE FLY',3200,sortie?(sortie.config.attacks?'CLEAR THE WAVE · GP BANKED PER KILL':'TARGET PRACTICE · ENEMIES DO NOT FIRE'):'NO ENEMIES · EXPLORE BOTH AIRFIELDS');
+  notify(sortie?`ROUND ${sortie.round} · WAVE ${sortie.wave}`:'FREE FLY',3200,sortie?(sortie.config.attacks?'SCATTERED START · ENEMY GUNS FIRE FORWARD':'RANDOM DROP · NO ENEMY FIRE'):'NO ENEMIES · EXPLORE BOTH AIRFIELDS');
   renderer.domElement.focus({ preventScroll: true });
 }
 

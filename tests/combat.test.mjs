@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/build/three.module.js';
-import { Combat, MISSILE } from '../src/combat.js';
+import { Combat, MISSILE, ENEMY_GUN } from '../src/combat.js';
 import { createFlightState } from '../src/flight.js';
 import {roundConfig,loadoutFor} from '../src/career.js';
 
@@ -12,6 +12,7 @@ function setup(colliders = []) {
   const combat = new Combat(scene, world, { hit: () => events.hits++, kill: n => events.kills = n, damage: n => events.damage += n });
   combat.reset();
   combat.patrolPosition = (drone, _time, target) => target.copy(drone.mesh.position);
+  combat.updateEnemyFlight=()=>{};
   combat.drones.forEach((drone, i) => {
     drone.mesh.position.set(i ? 80 : 0, 16 + i * 2, 0); drone.cooldown = 100;
     drone.box.setFromCenterAndSize(drone.mesh.position, new THREE.Vector3(1.05, .8, 1.05));
@@ -37,6 +38,64 @@ test('enemy shots damage the player using swept collision', () => {
   combat.addBullet(new THREE.Vector3(0, 16, 0), new THREE.Vector3(0, 0, 85), true);
   combat.update(.15, player);
   assert.equal(events.damage, 10); assert.equal(combat.bullets.length, 0);
+});
+
+test('enemy guns refuse side/rear targets and fire from the nose along its actual heading',()=>{
+  const {combat,player}=setup(),enemy=combat.drones[0];
+  enemy.mesh.quaternion.identity();enemy.velocity.set(0,0,0);enemy.cooldown=0;
+  for(const offset of [[0,0,10],[10,0,0],[-10,0,0],[0,10,0]]){
+    player.position.copy(enemy.mesh.position).add(new THREE.Vector3(...offset));
+    assert.equal(combat.tryEnemyShot(enemy,player),false);assert.equal(combat.bullets.length,0);
+  }
+  player.position.copy(enemy.mesh.position).add(new THREE.Vector3(.5,0,-10));
+  assert.equal(combat.tryEnemyShot(enemy,player),true);
+  const bullet=combat.bullets[0],nose=new THREE.Vector3(0,0,-1).applyQuaternion(enemy.mesh.quaternion);
+  assert.ok(bullet.mesh.position.distanceTo(enemy.mesh.position.clone().addScaledVector(nose,ENEMY_GUN.noseOffset))<1e-10);
+  assert.ok(bullet.velocity.clone().normalize().distanceTo(nose)<1e-10);
+  assert.ok(Math.abs(bullet.velocity.x)<1e-10,'does not aim a turret at off-center targets');
+});
+
+test('enemy nose-fire gating follows rotated/pitched orientation, furniture and cooldown',()=>{
+  const {combat,player}=setup(),enemy=combat.drones[0];
+  enemy.mesh.quaternion.setFromEuler(new THREE.Euler(.3,1.1,0,'YXZ'));enemy.cooldown=0;
+  const nose=new THREE.Vector3(0,0,-1).applyQuaternion(enemy.mesh.quaternion);
+  player.position.copy(enemy.mesh.position).addScaledVector(nose,15);
+  combat.world.colliders.push({box:new THREE.Box3().setFromCenterAndSize(enemy.mesh.position.clone().addScaledVector(nose,7),new THREE.Vector3(2,2,2))});
+  assert.equal(combat.tryEnemyShot(enemy,player),false);
+  combat.world.colliders=[];assert.equal(combat.tryEnemyShot(enemy,player),true);
+  assert.equal(combat.tryEnemyShot(enemy,player),false);
+  assert.ok(combat.bullets[0].velocity.clone().normalize().angleTo(nose)<1e-7);
+});
+
+test('career planes turn gradually and move forward instead of snapping around to shoot',()=>{
+  const {combat,player}=setup();combat.reset({...roundConfig(30),count:1});
+  const enemy=combat.drones[0];enemy.mesh.position.set(0,30,0);enemy.mesh.quaternion.identity();enemy.age=5;enemy.waypoint.set(0,30,-20);enemy.retarget=2;
+  player.position.set(0,30,30);const before=enemy.mesh.quaternion.clone(),position=enemy.mesh.position.clone();
+  Combat.prototype.updateEnemyFlight.call(combat,enemy,player,1/120,true);
+  assert.ok(before.angleTo(enemy.mesh.quaternion)<.02);
+  const nose=new THREE.Vector3(0,0,-1).applyQuaternion(enemy.mesh.quaternion);
+  assert.ok(enemy.mesh.position.clone().sub(position).normalize().angleTo(nose)<1e-7);
+  enemy.cooldown=0;assert.equal(combat.tryEnemyShot(enemy,player),false);
+});
+
+test('an enemy can turn around, acquire a target and then shoot only along its nose',()=>{
+  const {combat,player}=setup();combat.reset({...roundConfig(30),count:1});
+  const enemy=combat.drones[0];enemy.mesh.position.set(0,30,0);enemy.mesh.quaternion.identity();enemy.age=5;enemy.retarget=2;enemy.waypoint.set(0,30,-20);enemy.cooldown=0;
+  player.position.set(0,30,30);player.velocity.set(0,0,0);
+  let shots=0;
+  combat.addBullet=(origin,velocity,hostile)=>{
+    assert.equal(hostile,true);shots++;
+    const nose=new THREE.Vector3(0,0,-1).applyQuaternion(enemy.mesh.quaternion);
+    const toward=player.position.clone().sub(enemy.mesh.position).normalize();
+    assert.ok(nose.dot(toward)>=ENEMY_GUN.coneCos);
+    assert.ok(velocity.clone().normalize().angleTo(nose)<1e-7);
+    assert.ok(origin.distanceTo(enemy.mesh.position.clone().addScaledVector(nose,ENEMY_GUN.noseOffset))<1e-7);
+  };
+  for(let i=0;i<1200;i++){
+    Combat.prototype.updateEnemyFlight.call(combat,enemy,player,1/120,true);
+    enemy.cooldown-=1/120;combat.tryEnemyShot(enemy,player);
+  }
+  assert.ok(shots>0,'forward-only gating must still allow an acquired target to be attacked');
 });
 
 test('touching a drone causes no contact damage and shots can miss the smaller player core',()=>{
