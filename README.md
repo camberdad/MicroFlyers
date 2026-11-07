@@ -1,8 +1,8 @@
 # MicroFlyers
 
-Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
+Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V7.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V8.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -17,6 +17,8 @@ node scripts/serve.mjs
 ```
 
 Open **http://localhost:4173** and select **Take flight**. Opening `index.html` directly with `file://` will not load ES modules or the FBX; use HTTP. The bundled server binds only to your computer.
+
+Choose **01 · The Living Room** or **02 · The Dining Room** in the hangar before taking flight. Return to the hangar to change maps. The second map downloads only when selected; both are cached in memory during that session. Each has a clear launch position, its own drone patrol area and matching HUD labels.
 
 On Windows, you can also double-click **Start-MicroFlyers.cmd**. It uses an installed Node.js or this computer's bundled Codex Node.js runtime. Leave its terminal open while playing.
 
@@ -47,9 +49,15 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 
 ## Assets and scale
 
+- V8's jet is **1:100**, replacing the former 1:60 miniature at 60% of its previous dimensions (`JET_SCALE = 0.408`). This is the game's miniature design ratio; the procedural aircraft has no specified real-world counterpart. Its central collision sphere has radius **0.13 world units**, smaller than the visible wings.
+- Scenery, boundary and drone contact cause **no hull damage**. Actual triangle surfaces gently separate/slide the core without reducing speed, changing heading or resetting the aircraft. Wings may skim furniture. Enemy projectiles still damage the smaller player core. Box bounds remain a conservative broad phase for weapon occlusion.
+- `assets/dining-room.glb` is a browser-ready derivative of the user's 167,670,242-byte OBJ: 5,081,352 bytes, 236 meshes and 294,121 triangles. Sub-centimeter clustering and meshoptimizer simplification reduce the original 1,906,512 triangles; a remote export backdrop outside the room is excluded. Named furniture and architecture remain.
+- The dining OBJ's MTL contains wire colors and no texture references. Curated plaster, oak/walnut, fabric, glass-color and ceramic materials provide readable surfaces. The original OBJ and MTL remain untouched at their source location; the oversized OBJ is not uploaded to GitHub.
+- To rebuild the derivative: `node scripts/prepare-dining-room.mjs /absolute/path/to/room.obj`. The pinned meshoptimizer simplifier and MIT license in `scripts/vendor/` are used only offline. Conversion metadata and source SHA-256 are in `assets/dining-room-info.json`.
+
 - `assets/InteriorTest.fbx` is a copy of the user-supplied model. Its geometry, furniture, and room shell are loaded with `FBXLoader`; no Unity export is required.
-- The source measures approximately 519 × 300 × 817 source units. The longest horizontal dimension is normalized to 120 game units. The roughly 1.2-unit jet feels tiny next to the furniture.
-- Source units are treated as centimeters for the HUD. Speed displays cm/s and altitude displays meters. `world.scale` converts the normalized simulation back to source units. The 1:60 caption describes the miniature aircraft concept, rather than an independently verified physical measurement of the model.
+- The living-room source measures approximately 519 × 300 × 817 source units. Each map's longest horizontal dimension is normalized to 120 game units. The smaller jet feels tiny next to the furniture.
+- Source units are treated as centimeters for the HUD. Speed displays cm/s and altitude displays meters. `world.scale` converts the normalized simulation back to each source's units.
 - The supplied folder contains **only the FBX**, which references external texture images. Generated canvas textures and curated materials replace those missing images: wood, woven rug, plaster, artwork, and the TV screen. These replacements are intentional; original texture fidelity needs the accompanying texture files.
 - Original exported cameras and lights are removed. A directional sun with soft shadows, ambient light, hemisphere fill, and secondary directional fill keep the room readable.
 - The aircraft, drones, runway, effects, and audio are generated in code.
@@ -62,6 +70,8 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/main.js` | Separate initialization, asset loading, and requestAnimationFrame phases; input, game states, collision response, chase camera |
 | `src/input.js` | Keyboard-only axes, W/S mapping, boost and brake input |
 | `src/world.js` | FBX loading, normalization, lighting, generated materials, per-mesh static Box3 colliders |
+| `src/maps.js` | Airfield catalog, miniature scale and player-core radius |
+| `src/surface-index.js`, `src/scenery-collision.js` | Packed triangle BVH, precise close passes and damage-free contact separation |
 | `src/flight.js` | Quaternion flight, pitch/roll/yaw, minimum speed, boost/brake, momentum, swept segment helper |
 | `src/aircraft.js` | Procedural micro jet model |
 | `src/combat.js` | Four drone patrols, gunfire, homing missiles, lock selection, reloads, trails, nearest swept hits and damage |
@@ -72,7 +82,7 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `scripts/vendor.mjs` | Refresh pinned official Three.js modules and their loader dependencies |
 | `scripts/inspect-model.mjs` | Inspect the actual FBX geometry and referenced textures without a browser |
 
-Physics uses time in seconds and substeps at most 1/120 second; long frame gaps are capped. Environment collisions use **individual mesh Box3 bounds**, never the enclosing room box. Fast projectiles test the swept segment and choose its nearest obstruction to avoid tunneling and shooting through furniture. Drone and aircraft hulls are approximate boxes, so irregular geometry can register conservative hits. Drone patrol candidates are checked for clearance.
+Physics uses time in seconds and substeps at most 1/120 second; long frame gaps are capped. Aircraft/scenery contact uses a small core against nearby actual triangles, accelerated by a static BVH, with shorter movement samples to catch thin walls from either side. Empty space under tables is flyable. Fast projectiles test swept segments against individual mesh boxes and choose the nearest obstruction to avoid tunneling; irregular furniture can still block weapons conservatively. Drone patrol candidates are checked for surface clearance.
 
 ## Three.js, FBXLoader, and FFlate CDN links
 

@@ -2,6 +2,16 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V8 — Second airfield, 1:100 micro jet and forgiving collisions
+
+- Add The Dining Room as Airfield 02, selectable from the hangar alongside the original Living Room.
+- Prepare the supplied 168 MB room.obj as a roughly 5 MB indexed GLB with 236 named meshes, simplified furniture geometry and curated materials. Load it only when selected and cache both maps for return visits.
+- Give each map its own launch position, overview camera, room bounds, radar label and drone patrol area.
+- Change the miniature jet from 1:60 to 1:100: 60% of its former dimensions, with a closer chase camera and proportionally smaller missiles.
+- Replace oversized aircraft/furniture box contact with a small 0.13-unit central core and accelerated triangle-surface checks, allowing close passes and flight through actual furniture gaps.
+- Remove scenery, boundary and drone-contact damage, collision warnings, harsh bounce-backs, forced heading/speed changes and spawn resets. Contact separates/slides the aircraft gently; hostile gunfire still damages the hull.
+- Keep V7 flight controls, live updates, the stable share/embed link and all previous releases.
+
 ## V7 — Toyborne-style direct steering and held throttle
 
 - Review [Toyborne's](https://www.breyes.net/toyborne/en/) published controls and test its offline Free flight in Arrow mode.

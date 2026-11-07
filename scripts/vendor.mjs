@@ -21,6 +21,7 @@ async function download(relative) {
 await Promise.all([
   download('build/three.module.js'),
   download('examples/jsm/loaders/FBXLoader.js'),
+  download('examples/jsm/loaders/GLTFLoader.js'),
   download('examples/jsm/math/OBB.js'),
   download('LICENSE'),
 ]);

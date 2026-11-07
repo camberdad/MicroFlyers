@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { JET_SCALE } from './maps.js';
 
 function shapeMesh(points, material, thickness = .045) {
   const shape = new THREE.Shape();
@@ -46,7 +47,7 @@ export function createJet(enemy = false) {
     const light = new THREE.Mesh(new THREE.SphereGeometry(.026, 6, 4), navMaterial);
     light.position.set(x, .04, .47); jet.add(light);
   }
-  jet.scale.setScalar(.68);
+  jet.scale.setScalar(enemy ? .68 : JET_SCALE);
   jet.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return jet;
 }

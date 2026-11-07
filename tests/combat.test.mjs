@@ -37,6 +37,15 @@ test('enemy shots damage the player using swept collision', () => {
   combat.update(.15, player);
   assert.equal(events.damage, 10); assert.equal(combat.bullets.length, 0);
 });
+
+test('touching a drone causes no contact damage and shots can miss the smaller player core',()=>{
+  const {combat,player,events}=setup();
+  player.position.copy(combat.drones[0].mesh.position);combat.update(1/120,player);
+  assert.equal(events.damage,0);
+  player.position.set(0,16,10);
+  combat.addBullet(new THREE.Vector3(.3,16,0),new THREE.Vector3(0,0,85),true);
+  combat.update(.15,player);assert.equal(events.damage,0);
+});
 test('fire cooldown limits rate; restart removes old bullets, effects, and drones', () => {
   const { combat, player, scene } = setup();
   combat.shoot(player); combat.shoot(player); assert.equal(combat.bullets.length, 1);

@@ -1,5 +1,8 @@
 import * as THREE from 'three';
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { SurfaceIndex } from './surface-index.js';
+import { MAPS } from './maps.js';
 
 const textureCache = new Map();
 const materialCache = new Map();
@@ -80,48 +83,63 @@ export function initWorld(scene, renderer) {
 }
 
 /** Asset loading is isolated from init() and the animation loop. */
-export async function loadAirfield(scene, onProgress = () => {}) {
+export async function loadAirfield(scene, onProgress = () => {}, mapId = 'living') {
+  const map = MAPS[mapId];
+  if (!map) throw new Error('Unknown airfield.');
   const manager = new THREE.LoadingManager();
   // These source textures were not included with InteriorTest.fbx. Resolve them
   // locally to a generated swatch; roomMaterial supplies the finished materials.
   const placeholder = texture('plaster');
   manager.addHandler(/.*/, { load: () => placeholder, setPath() {}, setResourcePath() {} });
-  const loader = new FBXLoader(manager);
-  const room = await loader.loadAsync(new URL('../assets/InteriorTest.fbx', import.meta.url).href,
-    e => onProgress(e.total ? e.loaded / e.total : .5));
+  const progress = e => onProgress(e.total ? e.loaded/e.total : .5);
+  const room = mapId==='dining'
+    ? (await new GLTFLoader().loadAsync(new URL('../assets/dining-room.glb',import.meta.url).href,progress)).scene
+    : await new FBXLoader(manager).loadAsync(new URL('../assets/InteriorTest.fbx',import.meta.url).href,progress);
   // Discard exported cameras and lights; use the predictable browser lighting rig.
   const remove = [];
   room.traverse(o => { if (o.isCamera || o.isLight) remove.push(o); });
   remove.forEach(o => o.removeFromParent());
+  if(mapId==='living')room.traverse(o=>{if(o.isMesh)o.material=Array.isArray(o.material)?o.material.map(roomMaterial):roomMaterial(o.material);});
+  const world = prepareAirfield(room,mapId);
+  scene.add(world.root);
+  addRunway(world.root, world);
+  return world;
+}
+
+/** Pure normalization/collision setup shared by browser loading and model tests. */
+export function prepareAirfield(room,mapId='living') {
+  const map = MAPS[mapId];
   room.updateMatrixWorld(true);
   const sourceBounds = new THREE.Box3().setFromObject(room);
   const size = sourceBounds.getSize(new THREE.Vector3());
   const center = sourceBounds.getCenter(new THREE.Vector3());
   const scale = 120 / Math.max(size.x, size.z);
   room.scale.setScalar(scale);
-  room.position.set(-center.x * scale, -sourceBounds.min.y * scale, -center.z * scale);
+  const floor = mapId==='dining' ? 0 : sourceBounds.min.y;
+  room.position.set(-center.x * scale, -floor * scale, -center.z * scale);
   room.updateMatrixWorld(true);
   const colliders = [];
   let meshCount = 0;
   room.traverse(o => {
     if (!o.isMesh) return;
     meshCount++;
-    o.material = Array.isArray(o.material) ? o.material.map(roomMaterial) : roomMaterial(o.material);
     o.castShadow = true; o.receiveShadow = true;
     // Per-mesh boxes, never the room's enclosing Box3 (which would collide everywhere).
     const box = new THREE.Box3().setFromObject(o);
-    box.expandByScalar(.025);
     colliders.push({ box, mesh: o });
   });
-  scene.add(room);
-  // Architectural interior: source walls at x=±250, z=±400 and ceiling y=300.
-  const bounds = new THREE.Box3(
-    new THREE.Vector3((-249 - center.x) * scale, .25, (-399 - center.z) * scale),
-    new THREE.Vector3((249 - center.x) * scale, 298 * scale, (399 - center.z) * scale),
-  );
-  const world = { room, colliders, bounds, scale, meshCount, spawn: new THREE.Vector3(-10, 16, 42) };
-  addRunway(scene, world);
-  return world;
+  const sourcePoint=(x,y,z)=>new THREE.Vector3((x-center.x)*scale,(y-floor)*scale,(z-center.z)*scale);
+  const bounds = new THREE.Box3(sourcePoint(...map.sourceBounds[0]),sourcePoint(...map.sourceBounds[1]));
+  const surfaceTree = new SurfaceIndex(room);
+  const root = new THREE.Group();root.add(room);
+  return {map,root,room,colliders,bounds,scale,meshCount,surfaceTree,
+    spawn:mapId==='dining'?sourcePoint(720,150,-990):new THREE.Vector3(-10,16,42),
+    heading:mapId==='dining'?Math.PI:0,
+    showcase:mapId==='dining'?sourcePoint(730,135,-890):new THREE.Vector3(-13,14.7,35.5),
+    overview:mapId==='dining'?sourcePoint(740,170,-1020):new THREE.Vector3(-20,16,42),
+    overviewTarget:mapId==='dining'?sourcePoint(680,70,-780):new THREE.Vector3(8,10,-15),
+    patrol:mapId==='dining'?{center:sourcePoint(700,160,-800),radiusX:19,radiusZ:18,vertical:1.5}:null,
+  };
 }
 
 function addRunway(scene, world) {
@@ -137,11 +155,15 @@ function addRunway(scene, world) {
     const lamp = new THREE.Mesh(new THREE.SphereGeometry(.055, 6, 4), new THREE.MeshBasicMaterial({ color: 0xd6f58b }));
     lamp.position.set(x, .09, z); runway.add(lamp);
   }
-  runway.position.set(-10, .12, 40); scene.add(runway);
+  runway.position.copy(world.spawn); runway.position.y=world.bounds.min.y+.12; scene.add(runway);
   world.runway = runway;
 }
 
 export function isSafePosition(world, position, halfSize = .7) {
   const box = new THREE.Box3().setFromCenterAndSize(position, new THREE.Vector3(halfSize * 2, halfSize * 2, halfSize * 2));
-  return world.bounds.containsBox(box) && !world.colliders.some(c => c.box.intersectsBox(box));
+  if(!world.bounds.containsBox(box))return false;
+  if(!world.surfaceTree)return !world.colliders.some(c=>c.box.intersectsBox(box));
+  const sphere=new THREE.Sphere(position,halfSize),triangles=[],closest=new THREE.Vector3();
+  world.surfaceTree.getSphereTriangles(sphere,triangles);
+  return !triangles.some(t=>t.closestPointToPoint(position,closest).distanceToSquared(position)<halfSize*halfSize);
 }

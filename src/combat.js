@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { forwardVector, segmentHitsBox } from './flight.js';
 import { isSafePosition } from './world.js';
+import { PLAYER_CORE_RADIUS } from './maps.js';
 
 const bulletGeometry = new THREE.CylinderGeometry(.018, .018, .8, 5);
 bulletGeometry.rotateX(Math.PI / 2);
@@ -9,7 +10,7 @@ const enemyBulletMaterial = new THREE.MeshBasicMaterial({ color: 0xff8463 });
 const sparkGeometry = new THREE.IcosahedronGeometry(.07, 0);
 const sparkMaterial = new THREE.MeshBasicMaterial({ color: 0xffd193 });
 const enemySize = new THREE.Vector3(1.05, .8, 1.05);
-const playerSize = new THREE.Vector3(.78, .38, .95);
+const playerSize = new THREE.Vector3().setScalar(PLAYER_CORE_RADIUS*2);
 const direction = new THREE.Vector3();
 const playerBox = new THREE.Box3();
 const sweep = new THREE.Box3();
@@ -65,6 +66,10 @@ export class Combat {
 
   patrolPosition(drone, time, target) {
     const angle = time * .105 + drone.phase;
+    if(this.world.patrol){
+      const p=this.world.patrol;
+      return target.copy(p.center).add(new THREE.Vector3(Math.sin(angle)*(p.radiusX+drone.phase*.3),Math.sin(angle*1.7)*p.vertical+drone.phase*.25,Math.cos(angle)*p.radiusZ));
+    }
     return target.set(Math.sin(angle) * drone.radiusX, drone.height + Math.sin(angle * 1.7) * 2.2, Math.cos(angle) * drone.radiusZ - 5);
   }
 
@@ -73,7 +78,7 @@ export class Combat {
     this.fireCooldown = .105;
     this.gunActivity = 1;
     const forward = forwardVector(state);
-    const origin = state.position.clone().addScaledVector(forward, .85);
+    const origin = state.position.clone().addScaledVector(forward, .44);
     this.addBullet(origin, forward.multiplyScalar(85).add(state.velocity), false);
     this.events.shot?.();
   }
@@ -107,8 +112,9 @@ export class Combat {
     const target = this.getMissileTarget(state);
     if (!target) { this.events.weaponNotice?.('NO MISSILE LOCK · FACE A DRONE'); return false; }
     if (this.bullets.length >= 120) return false;
-    const forward = forwardVector(state), origin = state.position.clone().addScaledVector(forward,.9);
+    const forward = forwardVector(state), origin = state.position.clone().addScaledVector(forward,.5);
     const mesh = new THREE.Group();
+    mesh.scale.setScalar(.6);
     mesh.add(new THREE.Mesh(missileBodyGeometry,missileMaterial));
     const nose = new THREE.Mesh(missileNoseGeometry,missileMaterial); nose.position.z = -.3;
     const fin = new THREE.Mesh(missileFinGeometry,missileMaterial); fin.position.z = .15;
@@ -161,7 +167,7 @@ export class Combat {
           this.addBullet(drone.mesh.position.clone(), direction.clone().multiplyScalar(36), true);
         }
       }
-      if (drone.box.intersectsBox(playerBox)) this.events.damage?.(22, 'DRONE COLLISION');
+      // Physical contact is forgiving; only hostile projectiles damage the hull.
     }
     for (let i = this.bullets.length - 1; i >= 0; i--) {
       const bullet = this.bullets[i];

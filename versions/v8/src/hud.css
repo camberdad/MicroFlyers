@@ -1,0 +1,68 @@
+/* V6: compact aviation graphics and layout inspired by the supplied footage.
+   The landing screen keeps its own styles; these rules dress the live HUD. */
+.header-pause{display:none}
+.flight-settings{display:grid;gap:13px;margin:18px 0;color:#cdded5;font-size:10px}.flight-settings label{display:block;line-height:1.6}.flight-settings select{display:block;width:100%;margin-top:5px;padding:8px;background:#142b32;border:1px solid #9fe2d84d;border-radius:3px;color:#e8f2e7;font:inherit}.flight-settings input{display:block;width:100%;margin-top:6px;accent-color:#a8e4d7}.flight-settings output{float:right;color:#ddf484}
+.playing{--hud-cyan:#9fe2d8;--hud-amber:#e8b286;--hud-white:#f2f5ed}
+.playing .topbar{height:66px;padding:0 3.5%}
+.playing .brand{font-size:14px;letter-spacing:1.8px;gap:10px}
+.playing .brand svg{width:27px;height:27px;fill:var(--hud-amber)}
+.playing .brand small{font-size:6px;letter-spacing:2px;margin-top:4px}
+.playing .location{font-size:7px;letter-spacing:1.6px;gap:8px}
+.playing .tag{font-size:6px;padding:0;border:0;letter-spacing:1px}
+.playing nav{gap:6px;align-items:center}
+.playing .icon-button{border-radius:2px;width:31px;height:28px;background:#06131855;font-size:13px;border-color:#c4dfd933}
+.playing #sound-button{width:56px}.playing #sound-button span{font-size:7px}
+.playing .header-pause{display:flex;width:65px;font-size:8px;letter-spacing:1px}
+.playing .version-badge{font-size:7px;gap:6px;margin-right:8px}.playing .version-badge strong{padding:4px 6px;border-color:#a6dace40;background:#06242a77;color:var(--hud-cyan)}
+.playing .version-badge>span{color:var(--hud-cyan);font-size:6px}
+.playing .vignette{background:linear-gradient(0deg,#07111b88,transparent 27%,transparent 78%,#07111b77);box-shadow:inset 0 0 120px #07111b33}
+.hud{color:var(--hud-white);font-family:'DM Sans',Arial,sans-serif;font-weight:400;text-shadow:0 1px 7px #0008}
+.playing .heading-tape{position:absolute;top:76px;left:50%;transform:translateX(-50%);width:165px;text-align:center;opacity:.85}
+.heading-ticks{display:flex;justify-content:space-between;height:9px;align-items:flex-start}.heading-ticks i{height:4px;width:1px;background:#cce5dc55}.heading-ticks i:nth-child(2n){height:7px}.heading-tape strong{font-size:10px;font-weight:400;letter-spacing:1px}.heading-tape>span{font-size:7px;margin-left:6px;color:#bbcdc4}.heading-tape>b{font-size:13px;display:block;font-weight:400;line-height:10px;color:#d1e3da}
+.playing .mission{top:16%;left:3.5%;gap:8px;border-left:1px solid #9fe2d87a;padding:0 0 0 14px;max-width:240px}
+.playing .mission .eyebrow{font-size:8px;letter-spacing:1.5px;color:#c0dfd5}
+.playing .mission strong{font:500 16px 'DM Sans',Arial,sans-serif;letter-spacing:.1px}
+.playing .mission>span:last-of-type{font-size:9px;color:#e0e7dd}
+.sortie-count{display:flex;align-items:center;gap:18px;font-size:9px;letter-spacing:1.6px;color:var(--hud-amber)}
+.sortie-count b{font-weight:400}.sortie-count time{color:#b8cfc5;font-size:8px;letter-spacing:1px}
+.playing .mission-progress{margin-top:0;gap:4px}.playing .mission-progress i{width:23px;height:2px;background:#c6dfd42e}.playing .mission-progress i.done{background:var(--hud-amber)}
+.playing .radar-wrap{top:34%;left:3.5%;right:auto;bottom:auto;width:182px;padding:10px 10px 8px;border:1px solid #92d7cd44;border-radius:3px;background:#032129bd;backdrop-filter:blur(4px);text-align:left;box-shadow:0 8px 28px #0002}
+.radar-card-heading,.radar-readout{display:flex;justify-content:space-between;align-items:center;font-size:7px;letter-spacing:1.3px;color:#c2ddd2}
+.radar-card-heading>span:last-child{font-size:6px;letter-spacing:.7px}.playing .radar-wrap canvas{width:160px;height:160px;display:block;margin:2px 0}
+.radar-readout{font-size:6px;letter-spacing:.6px}.radar-legend{border-top:1px solid #b0dbcf26;margin-top:8px;padding-top:7px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:6px;letter-spacing:.6px;color:#c4d8cc}.radar-legend i{width:5px;height:5px;transform:rotate(45deg);background:var(--hud-amber)}.radar-legend b{font-size:10px;color:var(--hud-cyan);font-weight:400;margin-left:7px}
+.playing .weapon-status{top:16%;right:3.5%;width:218px;padding-right:15px;border-right:2px solid #9fe2d87d;text-align:left}
+.seeker-heading{display:flex;justify-content:space-between;font-size:8px;letter-spacing:1.3px;color:#d1e7de}.seeker-heading>span:last-child{font-size:7px;color:var(--hud-cyan);letter-spacing:.8px}
+.playing .weapon-status strong{font-size:10px;margin:13px 0 10px;letter-spacing:.5px;color:var(--hud-cyan);font-weight:500}
+.seeker-track{height:2px;background:#e1eadd22;margin-bottom:10px}.seeker-track i{height:100%;display:block;width:0;background:var(--hud-cyan);transition:width .08s linear}
+.playing .weapon-status small{display:block;font-size:8px;letter-spacing:.1px;line-height:1.6;color:#d5e2d8}
+.playing .reticle{width:33px;height:33px;border:1px solid #f0f4e8aa;box-shadow:0 0 8px #0001}.playing .reticle i{background:#d8dfd9b3;width:7px}.playing .reticle i:nth-child(3),.playing .reticle i:nth-child(4){width:1px;height:7px}.playing .reticle>span{width:2px;height:2px;background:#dfead6;opacity:.65}
+.playing .target-marker{width:42px;height:42px;border:1px dashed #e8b286bb;border-radius:50%;transform:translate(-50%,-50%);box-shadow:none}
+.target-marker>i{position:absolute;inset:7px;border:1px solid #e8b28688;border-radius:50%}
+.playing .target-marker>span{left:50%;top:-20px;transform:translateX(-50%);font-size:8px;letter-spacing:.2px;color:#f0eee0;font-weight:400}
+.playing .target-marker.locked{border:1px solid #9fe2d8;box-shadow:0 0 12px #9fe2d822}.target-marker.locked>i{border-color:#9fe2d8aa}.playing .target-marker.locked:after{content:'LOCK';position:absolute;top:48px;left:50%;transform:translateX(-50%);font-size:7px;letter-spacing:1px;color:var(--hud-cyan)}
+.contact-marker{position:absolute;width:14px;height:14px;border:1px solid #e6dfd580;border-radius:2px;transform:translate(-50%,-50%);opacity:.65}.contact-marker span{position:absolute;left:50%;top:-15px;transform:translateX(-50%);font-size:6px;color:#f0eee4;white-space:nowrap;letter-spacing:.1px}
+.playing .notification{top:20%;width:52%;left:24%;display:flex;flex-direction:column;gap:9px;pointer-events:none}
+.notification>strong{font-size:clamp(16px,2.1vw,25px);font-weight:700;letter-spacing:3px;color:#f3efad}.notification>span{font-size:10px;color:#eef1e6;font-weight:400;letter-spacing:1px}.notification:has(strong:empty){visibility:hidden}
+.threat-alert{position:absolute;top:14%;left:50%;transform:translateX(-50%);padding:11px 24px;border:1px solid #ef967278;background:#4f1609b8;text-align:center;border-radius:2px;box-shadow:0 0 25px #c5461822}.threat-alert strong{display:block;font-size:10px;letter-spacing:2px;color:#ffcfb8}.threat-alert span{display:block;font-size:7px;letter-spacing:1px;margin-top:6px;color:#f2c8b3}
+.playing .telemetry{left:3.5%;bottom:91px;display:block;width:218px}
+.instrument-heading{display:flex;justify-content:space-between;align-items:center;font-size:8px;letter-spacing:1.4px;color:#d6e6dd}
+.playing .telemetry .instrument-heading>span{font-size:8px;letter-spacing:1.4px;color:#d6e6dd}.playing .telemetry .instrument-heading>span:last-child{font-size:7px;letter-spacing:.7px;color:var(--hud-amber)}
+.speed-number{display:flex;gap:7px;align-items:baseline;margin:8px 0 2px}.playing .speed-number strong{font:400 56px/.95 'Space Grotesk',Arial,sans-serif;letter-spacing:-3px;color:#f1f4ed}.speed-number small{font-size:10px;color:#c9d6cc;letter-spacing:.7px}
+.playing .speed-track{width:100%;height:2px;background:#d4dfd433;margin:8px 0 11px}.playing .speed-track i{background:#a8e4d7}
+.telemetry-details{display:flex;justify-content:space-between;align-items:center;font-size:7px;color:#c1d2c8;letter-spacing:.7px}
+.playing .telemetry-details>span{font-size:7px;letter-spacing:.5px;display:inline}.telemetry-details strong{font-size:9px;color:#eff5e8;font-weight:500;margin-left:5px;letter-spacing:.2px}.telemetry-details strong small{font-size:7px}
+.gun-panel{position:absolute;bottom:91px;right:3.5%;width:218px}.gun-panel .instrument-heading>span:last-child{color:var(--hud-amber);font-size:7px;letter-spacing:.5px}
+.gun-calibre{font:400 48px/1.1 'Space Grotesk',Arial,sans-serif;letter-spacing:-2px;margin:10px 0 5px;display:flex;align-items:baseline;gap:5px}.gun-calibre>small{font:400 10px 'DM Sans',Arial;letter-spacing:.7px;color:#c6d7ca}.gun-calibre>span{margin-left:auto;font:400 8px 'DM Sans',Arial;letter-spacing:.7px;color:var(--hud-amber)}.gun-calibre b{font-weight:400}
+.gun-activity{height:2px;background:#d4dfd433}.gun-activity i{display:block;background:var(--hud-amber);width:0;height:100%}
+.playing .hull{position:static;transform:none;width:100%;margin-top:14px}.playing .hull>span{font-size:7px;letter-spacing:.7px;color:#ccddd1}.playing .hull strong{font-size:8px;font-weight:400}.playing .hull>div{height:2px;margin-top:7px}.playing .hull i{background:#a8e4d7}.playing .hull small{font-size:6px;letter-spacing:1px;margin-top:6px;color:#b9cfc0}
+.playing .flight-toolbar{bottom:22px;left:3.5%;right:3.5%;padding:0;border:0;gap:14px;font-size:6px;letter-spacing:.2px;flex-wrap:wrap;color:#d1e0d4}
+.playing .flight-toolbar kbd{height:18px;padding:3px 5px;min-width:24px;font-size:6px;background:#07151d55;border-color:#b4d3c155}.playing .flight-toolbar>span{gap:5px}
+@media(max-height:750px){.playing .mission{top:15%}.playing .radar-wrap{top:32%;width:166px;padding:9px}.playing .radar-wrap canvas{width:146px;height:146px}.playing .telemetry,.gun-panel{bottom:78px}.playing .speed-number strong{font-size:48px}.gun-calibre{font-size:42px}.playing .heading-tape{top:64px}.playing .weapon-status{top:15%}}
+@media(max-width:800px){.playing .location{display:none}.playing .brand{font-size:12px}.playing .brand svg{width:22px}.playing .weapon-status{width:177px}.playing .mission{max-width:180px}.playing .mission strong{font-size:14px}.playing .mission>span:last-of-type{font-size:8px}.playing .telemetry,.gun-panel{width:175px}.playing .flight-toolbar{gap:8px}.playing .flight-toolbar>span:nth-child(7){display:none}}
+@media(max-width:540px){.playing .topbar{height:58px}.playing .brand small{display:none}.playing .header-pause{width:51px;font-size:6px}.playing .version-badge>span{display:none}.playing .version-badge{margin-right:0}.playing .icon-button{width:25px;height:25px}.playing #sound-button{width:44px}.playing .mission{top:13%;max-width:150px;padding-left:8px}.playing .mission strong{font-size:12px}.playing .mission>span:last-of-type{font-size:7px}.sortie-count{font-size:7px;gap:9px}.playing .mission .eyebrow{font-size:6px}.playing .heading-tape{top:61px;width:100px}.playing .weapon-status{top:13%;width:145px;padding-right:8px}.seeker-heading{font-size:6px}.playing .weapon-status strong{font-size:8px}.playing .weapon-status small{font-size:6px}.playing .radar-wrap{top:33%;width:130px;padding:7px}.playing .radar-wrap canvas{width:114px;height:114px}.radar-card-heading,.radar-readout{font-size:5px}.radar-legend{font-size:5px;gap:4px}.playing .telemetry,.gun-panel{width:148px;bottom:90px}.playing .speed-number strong{font-size:42px}.gun-calibre{font-size:38px}.playing .flight-toolbar>span:nth-child(2){display:flex}.playing .flight-toolbar>span:nth-child(5){display:flex}.playing .notification{top:25%;left:10%;width:80%}.notification>strong{font-size:18px}.notification>span{font-size:7px}.threat-alert{top:22%;padding:9px 15px}.playing .telemetry-details>span{font-size:6px}.telemetry-details strong{font-size:7px;margin-left:2px}}
+
+/* V8 airfield selection lives in the hangar. */
+.map-picker{display:grid;gap:8px;margin:18px 0 20px;max-width:300px}.map-picker label{font-size:9px;letter-spacing:1.5px;color:#c5d4c1}.map-picker select{width:100%;padding:12px;background:#152a2de8;color:#edf3df;border:1px solid #daeeb24d;border-radius:4px;font:500 12px Arial,sans-serif}.map-picker small{font-size:8px;letter-spacing:.6px;color:#a9c0ac}.map-picker select:focus-visible{outline:2px solid #dff587;outline-offset:3px}@media(max-height:760px){.intro h1{font-size:clamp(38px,6vw,74px);line-height:1.02}.intro p{margin-top:14px;margin-bottom:10px}.map-picker{gap:6px;margin:12px 0}.map-picker select{padding:9px}.intro .intro-controls{margin-top:16px}}
+
+@media(max-height:760px){.intro{top:48%;transform:translateY(-45%)}.intro h1{font-size:clamp(38px,5vw,60px)}.intro-controls{padding-top:10px}}
+@media(max-height:580px){.intro h1{font-size:36px;margin:12px 0}.intro .eyebrow,.intro-controls,.scene-caption,.bottom-left{display:none}.intro{top:52%}.intro p{line-height:1.4;font-size:11px}.map-picker{margin:8px 0;gap:4px}}

@@ -1,19 +1,19 @@
 {
-  "version": "V7",
-  "versionNumber": 7,
-  "assetVersion": "v7-3cd0edf0ece2",
-  "publishedAtUtc": "2026-11-07T05:33:23.519Z",
+  "version": "V8",
+  "versionNumber": 8,
+  "assetVersion": "v8-e0aa0c39318c",
+  "publishedAtUtc": "2026-11-07T05:53:27.367Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v7/",
-  "description": "Toyborne-style direct steering and held throttle",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v8/",
+  "description": "Second airfield, 1:100 micro jet and forgiving collisions",
   "changes": [
-    "Review [Toyborne's](https://www.breyes.net/toyborne/en/) published controls and test its offline Free flight in Arrow mode.",
-    "Replace bank-dependent heading changes with smooth, direct A/D or left/right-arrow turns. Bank follows the turn; releasing turn input levels the wings and stops turning promptly.",
-    "Let W/S or up/down arrows adjust pitch and hold that attitude on release, with a 78-degree safety limit.",
-    "Default to Beginner pitch (W climbs / S dives), preserving the user's preferred direction. Add optional Flight style (S climbs) and saved steering sensitivity in Flight controls.",
-    "Match held throttle controls: Space raises throttle/afterburner; Shift lowers throttle and applies an airbrake; the wheel makes fine adjustments. Throttle stays set after release.",
-    "Keep keyboard-only steering, left-click gun, right-click homing missiles, existing room-scaled speed range and momentum, HUD and live updates.",
-    "Implement the observed control behavior independently; retain previous MicroFlyers versions and do not distribute Toyborne code or assets."
+    "Add The Dining Room as Airfield 02, selectable from the hangar alongside the original Living Room.",
+    "Prepare the supplied 168 MB room.obj as a roughly 5 MB indexed GLB with 236 named meshes, simplified furniture geometry and curated materials. Load it only when selected and cache both maps for return visits.",
+    "Give each map its own launch position, overview camera, room bounds, radar label and drone patrol area.",
+    "Change the miniature jet from 1:60 to 1:100: 60% of its former dimensions, with a closer chase camera and proportionally smaller missiles.",
+    "Replace oversized aircraft/furniture box contact with a small 0.13-unit central core and accelerated triangle-surface checks, allowing close passes and flight through actual furniture gaps.",
+    "Remove scenery, boundary and drone-contact damage, collision warnings, harsh bounce-backs, forced heading/speed changes and spawn resets. Contact separates/slides the aircraft gently; hostile gunfire still damages the hull.",
+    "Keep V7 flight controls, live updates, the stable share/embed link and all previous releases."
   ],
   "files": [
     {
@@ -27,6 +27,16 @@
       "sha256": "383a2269f797231bd38d5ab04d1bab685c0526b43b2cb920442d91b85bd96359"
     },
     {
+      "path": "assets/dining-room-info.json",
+      "bytes": 56445,
+      "sha256": "787d2565b26d24cccf74ec49b946ee567e82a380024864a6f1d789379e02e051"
+    },
+    {
+      "path": "assets/dining-room.glb",
+      "bytes": 5081352,
+      "sha256": "aa69667624c95314a5dffe2a8c8d988e0152977b556e7784925745b0d6820a73"
+    },
+    {
       "path": "assets/favicon.svg",
       "bytes": 205,
       "sha256": "e93e179c557b2f66492916cbb9e46db71ba590e9c40daa528f4f7f981fc03eba"
@@ -38,13 +48,13 @@
     },
     {
       "path": "index.html",
-      "bytes": 10624,
-      "sha256": "1d23882a539a407bbf990b7c6ead13a9b63d1dc0e5e9ff4561d3355862e7f2f2"
+      "bytes": 11133,
+      "sha256": "b1f3ac4b3d54c48385eb42ae784a89013fa435567e3e681f815e974e096039bf"
     },
     {
       "path": "src/aircraft.js",
-      "bytes": 3190,
-      "sha256": "5ba90bbe470da1daf860ed03b84bddff556cef511f9bf6d798d0e671da71fbb3"
+      "bytes": 3249,
+      "sha256": "85acee84b3d72aeabddc89d8be928f3b0a21d5800ad1251b3a3581c496eb9c23"
     },
     {
       "path": "src/audio.js",
@@ -53,8 +63,8 @@
     },
     {
       "path": "src/combat.js",
-      "bytes": 12503,
-      "sha256": "f841c9fda42fcba3ce167716d938e5ee23bf9c51756f29dde6bcbb25f942be03"
+      "bytes": 12833,
+      "sha256": "e5f3b9d39a3bb6fec2bb07f24fe034804efbd4b71fae02c5045012d2c253cbd1"
     },
     {
       "path": "src/flight.js",
@@ -68,8 +78,8 @@
     },
     {
       "path": "src/hud.css",
-      "bytes": 11545,
-      "sha256": "7d01e6f03e866e1599cd0c755f296cd4c8b831e35fa03a6d126da733814f1e06"
+      "bytes": 12632,
+      "sha256": "903fcb6e0387325884b65eb1dfc4cdae804973efc6d378a6786233a547fbbd74"
     },
     {
       "path": "src/input.js",
@@ -78,8 +88,23 @@
     },
     {
       "path": "src/main.js",
-      "bytes": 20020,
-      "sha256": "98caa6f9365e7f80c77cdaf9cce42f92d3265231e724b595cfd67b48522ecff6"
+      "bytes": 20389,
+      "sha256": "186ccd3995088bd7bc20c4f806759f364c85262405bea11fe0f02a8b9a432dcc"
+    },
+    {
+      "path": "src/maps.js",
+      "bytes": 671,
+      "sha256": "9decbb508f22521519299ec5c87edcfcea349adef7c4a7d2cb8017784e4c9eba"
+    },
+    {
+      "path": "src/scenery-collision.js",
+      "bytes": 2600,
+      "sha256": "62f0186418556a41b4dcdceeaab3029bfdc4505aec45a9588a09f1fbab71e250"
+    },
+    {
+      "path": "src/surface-index.js",
+      "bytes": 3145,
+      "sha256": "d63b39c79ee446445c796cc5e285e8c7d4dd6562f1ec0a396e00dc8bd0439228"
     },
     {
       "path": "src/ui.js",
@@ -99,12 +124,12 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "d1c4cfd431e1781c0fedfd4be5a81cdd6912d3368009683e0018ceb69ca968ec"
+      "sha256": "34725daa0f84f46803e7c82c3abc9dfedb1c4b8b6f505678a4ac8405ef1fe346"
     },
     {
       "path": "src/world.js",
-      "bytes": 8985,
-      "sha256": "88f3b43e590c3867c471d8cf2864a331c60a3b74f987c18b5896fc220fe77d1e"
+      "bytes": 10479,
+      "sha256": "46987c2c453ef12e5c98c27c3c9dc9fd36744374eacd0f7b6727314b5e6d7010"
     },
     {
       "path": "styles.css",
@@ -152,9 +177,19 @@
       "sha256": "d97724a6bea228003e02c64651d969a9a62003a00be314ef6995c390116f547d"
     },
     {
+      "path": "vendor/three/examples/jsm/loaders/GLTFLoader.js",
+      "bytes": 114739,
+      "sha256": "67ac5551fdafa6e349bd80c8f8e5e39c136d6b2fb1ad647db9abb21dc86f9e4a"
+    },
+    {
       "path": "vendor/three/examples/jsm/math/OBB.js",
       "bytes": 13862,
       "sha256": "3297db79bdf0a33525ef06fe7478fd921dcffb7699df1059e189bbdf2c0fae58"
+    },
+    {
+      "path": "vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "bytes": 35539,
+      "sha256": "fda7e946b8e0b5ab39b779206589e7a1079a22eb24efb89d7223e03fdfb1f751"
     }
   ]
 }

@@ -7,12 +7,16 @@ import { Combat } from './combat.js';
 import { AudioEngine } from './audio.js';
 import { $, updateHUD, notify, hitMarker, flashDamage } from './ui.js';
 import { LiveUpdates } from './updates.js';
+import { MAPS, PLAYER_CORE_RADIUS } from './maps.js';
+import { resolveSceneryContact } from './scenery-collision.js';
 
 let scene, camera, renderer, aircraft, world, combat;
 let player = createFlightState();
 let mode = 'loading', helpPreviousMode = null, elapsed = 0, previousTime = 0;
 let mouseFire = false, missileRequested = false;
 let hudAccumulator = 0, simulationTime = 0, missionPending = false;
+const airfields = new Map();
+let switchingMap = false;
 const keys = new Set();
 const audio = new AudioEngine();
 const updates = new LiveUpdates(returnToHangar);
@@ -27,9 +31,8 @@ try {
 const input = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false, fire: false };
 const forward = new THREE.Vector3(), cameraDesired = new THREE.Vector3(), cameraTarget = new THREE.Vector3();
 const cameraUp = new THREE.Vector3(), cameraRotation = new THREE.Matrix4(), cameraOrientation = new THREE.Quaternion();
-const previousPosition = new THREE.Vector3(), collisionNormal = new THREE.Vector3();
-const playerBox = new THREE.Box3(), cameraRay = new THREE.Ray(), intersection = new THREE.Vector3();
-const playerLocalBox = new THREE.Box3(new THREE.Vector3(-.94, -.15, -1.08), new THREE.Vector3(.94, .45, .78));
+const previousPosition = new THREE.Vector3();
+const cameraRay = new THREE.Ray(), intersection = new THREE.Vector3();
 
 /** PHASE 1 — scene, renderer, input, and UI. No model assumptions here. */
 async function init() {
@@ -48,13 +51,10 @@ async function init() {
   bindEvents();
   camera.position.set(-20, 16, 42); camera.lookAt(8, 10, -15);
 
-  /** PHASE 2 — load the supplied FBX, normalize scale, build static colliders. */
+  /** PHASE 2 — load the selected map, normalize scale, build static colliders. */
   world = await loadAirfield(scene, progress => { $('load-label').textContent = `Loading airfield · ${Math.round(progress * 100)}%`; });
-  if (!isSafePosition(world, world.spawn)) {
-    // Clear fallback in the upper central room if an edited model obstructs the launch.
-    world.spawn.set(0, 28, 32);
-    if (!isSafePosition(world, world.spawn)) throw new Error('No clear launch position found in this airfield.');
-  }
+  if (!isSafePosition(world, world.spawn, PLAYER_CORE_RADIUS)) throw new Error('No clear launch position found in this airfield.');
+  airfields.set('living',world);
   combat = new Combat(scene, world, {
     shot: () => audio.tone(720, .075, 'triangle', .22),
     missileShot: () => { audio.tone(150, .3, 'sawtooth', .4); notify('MISSILE AWAY',1300,'Homing missile tracking the locked bandit.'); },
@@ -67,15 +67,49 @@ async function init() {
     },
     damage: takeDamage,
   });
-  combat.reset();
-  aircraft.position.set(-13, 14.7, 35.5);
-  aircraft.rotation.set(.04, -.15, -.15);
-  $('load-label').textContent = 'Airfield ready · 4 drones on patrol';
-  $('launch-label').textContent = 'Take flight'; $('launch-button').disabled = false;
-  $('scene').dataset.model = 'InteriorTest.fbx'; $('scene').dataset.meshCount = String(world.meshCount);
-  setMode('intro');
+  refreshAirfieldUI();
+  returnToHangar();
   updates.loaded();
   requestAnimationFrame(animate);
+}
+
+function refreshAirfieldUI() {
+  $('map-select').value=world.map.id;
+  $('map-select').disabled=false;
+  $('location-name').textContent=world.map.name.toUpperCase();
+  $('airfield-number').textContent=`AIRFIELD ${world.map.number}`;
+  $('radar-room').textContent=`ROOM ${world.map.number}`;
+  $('room-label').textContent=`${world.map.name.toUpperCase()} / FREE FLIGHT + DOGFIGHT`;
+  $('intro-description').textContent=`${world.map.description} Turn the room into your playground.`;
+  $('load-label').textContent='Airfield ready · scenery contact causes no damage';
+  $('launch-label').textContent='Take flight';
+  $('scene').dataset.model=world.map.asset;
+  $('scene').dataset.map=world.map.id;
+  $('scene').dataset.meshCount=String(world.meshCount);
+  $('scene').setAttribute('aria-label',`Three-dimensional ${world.map.name.toLowerCase()} airfield`);
+}
+
+async function selectAirfield() {
+  if(switchingMap||mode!=='intro')return;
+  const id=$('map-select').value;
+  if(id===world.map.id)return;
+  switchingMap=true;setMode('loading');resetInput();
+  $('map-select').disabled=true;$('launch-button').disabled=true;
+  $('launch-label').textContent='Preparing airfield';
+  try {
+    let next=airfields.get(id);
+    if(!next) {
+      next=await loadAirfield(scene,p=>{$('load-label').textContent=`Loading ${MAPS[id].name} · ${Math.round(p*100)}%`;},id);
+      if(!isSafePosition(next,next.spawn,PLAYER_CORE_RADIUS)){scene.remove(next.root);throw new Error('Launch area obstructed.');}
+      airfields.set(id,next);
+    }
+    world.root.visible=false;world=next;world.root.visible=true;combat.world=world;
+    switchingMap=false;refreshAirfieldUI();returnToHangar();
+  } catch(error) {
+    console.error('Airfield selection failed:',error);
+    switchingMap=false;refreshAirfieldUI();returnToHangar();
+    $('load-label').textContent='Map could not load. Select it again to retry.';
+  } finally {switchingMap=false;}
 }
 
 function setMode(next) {
@@ -85,12 +119,12 @@ function setMode(next) {
 }
 
 function returnToHangar() {
-  if (!world) return;
+  if (!world || switchingMap) return;
   resetInput(); helpPreviousMode = null; missionPending = false;
   for (const id of ['hud', 'pause-panel', 'result-panel', 'help-panel']) $(id).classList.add('hidden');
   for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label']) $(id).classList.remove('hidden');
   player = createFlightState(world.spawn); combat.reset();
-  aircraft.visible = true; aircraft.position.set(-13, 14.7, 35.5); aircraft.rotation.set(.04, -.15, -.15);
+  aircraft.visible = true; aircraft.position.copy(world.showcase); aircraft.rotation.set(.04,world.heading-.15,-.15);
   camera.fov = 61; camera.updateProjectionMatrix();
   $('launch-button').disabled = false;
   setMode('intro'); updates.check();
@@ -102,8 +136,10 @@ function resetInput() {
 }
 
 function launch() {
-  if (!world) return;
+  if (!world || switchingMap) return;
   player = createFlightState(world.spawn);
+  player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),world.heading);
+  player.velocity.copy(forwardVector(player)).multiplyScalar(player.speed);
   combat.reset(); elapsed = 0; simulationTime = 0; missionPending = false;
   resetInput();
   for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label', 'pause-panel', 'result-panel', 'help-panel']) $(id).classList.add('hidden');
@@ -111,7 +147,7 @@ function launch() {
   $('mission-label').textContent = 'Clear the airspace'; $('mission-detail').textContent = 'Track and eliminate 4 rogue drones';
   aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.visible = true;
   aircraft.userData.exhaust.scale.z = .75;
-  camera.position.copy(player.position).add(new THREE.Vector3(0,1.5,4.5));
+  camera.position.copy(player.position).addScaledVector(forwardVector(player),-3.2);camera.position.y+=.9;
   setMode('playing');
   notify('CLEARED FOR TAKEOFF',3200,'A/D TURNS DIRECTLY · SPACE THROTTLE UP · SHIFT BRAKE');
   renderer.domElement.focus({ preventScroll: true });
@@ -168,33 +204,7 @@ function readInput() {
 }
 
 function updatePlayerCollision() {
-  aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.updateMatrixWorld(true);
-  playerBox.copy(playerLocalBox).applyMatrix4(aircraft.matrixWorld);
-  const obstacle = world.colliders.find(c => c.box.intersectsBox(playerBox));
-  const outside = !world.bounds.containsBox(playerBox);
-  if (!obstacle && !outside) return;
-  takeDamage(28, outside ? 'ROOM BOUNDARY' : 'WATCH THE FURNITURE');
-  if (mode === 'lost') return;
-  if (obstacle) {
-    obstacle.box.clampPoint(previousPosition, intersection);
-    collisionNormal.copy(previousPosition).sub(intersection);
-  } else {
-    world.bounds.clampPoint(player.position, intersection);
-    collisionNormal.copy(intersection).sub(player.position);
-  }
-  if (collisionNormal.lengthSq() < .0001) collisionNormal.copy(player.velocity).negate();
-  collisionNormal.normalize();
-  directionAfterImpact(player, collisionNormal);
-  player.position.copy(previousPosition).addScaledVector(collisionNormal, .75);
-  if (!isSafePosition(world, player.position, .6)) {
-    player.position.copy(world.spawn); player.quaternion.identity(); player.velocity.set(0, 0, -player.speed);
-  }
-}
-function directionAfterImpact(state, normal) {
-  state.velocity.reflect(normal).normalize().multiplyScalar(Math.max(4.5, state.speed * .7));
-  state.speed = state.velocity.length();
-  state.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), state.velocity.clone().normalize());
-  state.angular.set(0, 0, 0);
+  resolveSceneryContact(world,player,previousPosition);
 }
 
 function updateCamera(dt) {
@@ -202,7 +212,7 @@ function updateCamera(dt) {
   // The footage keeps the jet low in frame, with only a little camera bank.
   cameraUp.set(0,1,0).applyQuaternion(player.quaternion).multiplyScalar(.18);
   cameraUp.y += .82; cameraUp.normalize();
-  cameraDesired.copy(player.position).addScaledVector(forward,-4.5); cameraDesired.y += 1.5;
+  cameraDesired.copy(player.position).addScaledVector(forward,-3.2); cameraDesired.y += .9;
   // Shorten the chase arm before a wall can obscure the aircraft.
   const offset = cameraDesired.clone().sub(player.position);
   let distance = offset.length();
@@ -247,12 +257,12 @@ function animate(timestamp) {
     updateCamera(dt);
     hudAccumulator += dt;
     if (hudAccumulator > 1 / 30) { updateHUD(player, combat, camera, input, world, elapsed); hudAccumulator = 0; }
-  } else if (mode === 'intro') {
+  } else if (mode === 'intro' && world) {
     combat.update(dt, player, false);
-    aircraft.position.y = 14.7 + Math.sin(timestamp * .0008) * .14;
+    aircraft.position.y = world.showcase.y + Math.sin(timestamp * .0008) * .09;
     aircraft.rotation.z = -.15 + Math.sin(timestamp * .00055) * .045;
-    camera.position.set(-20 + Math.sin(timestamp * .00008) * .6, 16, 42);
-    camera.lookAt(8, 10, -15);
+    camera.position.copy(world.overview);camera.position.x+=Math.sin(timestamp*.00008)*.6;
+    camera.lookAt(world.overviewTarget);
   }
   audio.update(player.speed, active);
   renderer.render(scene, camera);
@@ -272,6 +282,7 @@ async function toggleSound() {
   if (mode === 'playing' || mode === 'exploring') renderer.domElement.focus({ preventScroll: true });
 }
 function bindEvents() {
+  $('map-select').addEventListener('change',selectAirfield);
   $('pitch-style').value = controlSettings.pitchStyle;
   $('flight-sensitivity').value = String(controlSettings.sensitivity);
   $('sensitivity-value').textContent = controlSettings.sensitivity.toFixed(2);
