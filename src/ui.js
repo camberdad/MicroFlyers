@@ -9,7 +9,7 @@ const right = new THREE.Vector3();
 const delta = new THREE.Vector3();
 const radar = $('radar').getContext('2d');
 let noticeTimeout, hitTimeout;
-const contactMarkers = Array.from({length:4},()=>{
+const contactMarkers = Array.from({length:8},()=>{
   const marker = document.createElement('div'); marker.className = 'contact-marker hidden';
   marker.appendChild(document.createElement('span')); $('contacts').appendChild(marker); return marker;
 });
@@ -33,10 +33,11 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('speed-bar').style.width = `${state.speed / 19 * 100}%`;
   $('altitude').innerHTML = `${(state.position.y / world.scale / 100).toFixed(1)}<small> M</small>`;
   $('flight-mode').textContent = input.brake ? 'AIRBRAKE' : state.engineThrottle>.85 ? 'AFTERBURNER' : state.throttle<.25 ? 'IDLE' : 'CRUISE';
-  $('health-label').textContent = `${Math.ceil(state.health)}%`;
-  $('health-bar').style.width = `${state.health}%`;
-  $('health-bar').style.background = state.health < 35 ? '#ff9773' : '#a8e4d7';
-  $('hull-detail').textContent = state.health < 35 ? 'AIRFRAME CRITICAL' : state.invulnerable > 0 ? 'RECOVERING' : 'SYSTEMS NOMINAL';
+  const healthPercent=state.health/(state.maxHealth??100)*100;
+  $('health-label').textContent = `${Math.ceil(healthPercent)}%`;
+  $('health-bar').style.width = `${healthPercent}%`;
+  $('health-bar').style.background = healthPercent < 35 ? '#ff9773' : '#a8e4d7';
+  $('hull-detail').textContent = healthPercent < 35 ? 'AIRFRAME CRITICAL' : state.invulnerable > 0 ? 'RECOVERING' : 'SYSTEMS NOMINAL';
   $('kills').textContent = String(combat.kills).padStart(2, '0');
   $('timer').textContent = `${String(Math.floor(elapsed / 60)).padStart(2, '0')}:${String(Math.floor(elapsed % 60)).padStart(2, '0')}`;
   [...$('mission-progress').children].forEach((el, i) => el.classList.toggle('done', i < combat.kills));
@@ -46,6 +47,11 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('seeker-state').textContent = rearming ? 'REARM' : locked ? 'LOCK' : 'SEARCH';
   $('seeker-detail').textContent = rearming ? 'Missile rack rearming…' : locked ? 'RIGHT CLICK · HOMING MISSILE READY' : 'Face a drone with a clear line of sight.';
   $('seeker-bar').style.width = `${rearming ? (1-combat.missileCooldown/1.8)*100 : locked ? 100 : 0}%`;
+  if(combat.config.count===0){
+    $('missile-status').textContent='FREE FLY · NO HOSTILES';
+    $('seeker-state').textContent='SAFE';
+    $('seeker-detail').textContent='Explore the room. Career adds enemy waves.';
+  }
   $('bank-angle').textContent = `${Math.round(Math.abs(state.currentRoll)*180/Math.PI)}°`;
   $('throttle-value').textContent = `${Math.round(state.throttle*100)}%`;
   $('gun-status').textContent = input.fire ? 'FIRING' : 'READY';
@@ -84,6 +90,7 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
       $('target-distance').textContent = `BANDIT ${String(combat.drones.indexOf(best)+1).padStart(2,'0')} / ${Math.round(best.mesh.position.distanceTo(state.position) / world.scale)} CM`;
     }
   }
+  contactMarkers.forEach(contact=>contact.classList.add('hidden'));
   combat.drones.forEach((drone,i)=>{
     const contact = contactMarkers[i]; contact.classList.add('hidden');
     if (!drone.alive || drone===best) return;

@@ -1,0 +1,202 @@
+{
+  "version": "V9",
+  "versionNumber": 9,
+  "assetVersion": "v9-6f4e5ef095fe",
+  "publishedAtUtc": "2026-11-07T06:09:53.689Z",
+  "gameUrl": "https://camberdad.github.io/MicroFlyers/versions/v9/",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v9/",
+  "description": "Free Fly, 30-round Career and GP upgrades",
+  "changes": [
+    "Add two hangar modes on both maps: peaceful Free Fly with no enemies or damage, and a saved 30-round Career with waves of enemy planes.",
+    "Begin with one slow, one-hit practice plane and no incoming fire in rounds 1–2. Place opening practice targets in a clear lane ahead of takeoff.",
+    "Gradually increase enemy count from 1 to 8, waves per round from 1 to 3, enemy hull strength, patrol speed, projectile speed/damage and firing accuracy/frequency. The full career contains 60 waves and ends after round 30.",
+    "Award and immediately bank 25–50 GP per career kill. Keep earned GP after a defeat or return to the hangar; resume the current uncleared wave after reloading.",
+    "Add a GP upgrade hangar accessible before launch and between waves: five shot levels increase gun/missile damage and firing rate; five armor levels add 30 hull points each, up to 250.",
+    "Show round, wave, target count, GP and actual hull capacity in the HUD; repair/rearm at each wave launch. Offer the next wave, retry, upgrades or peaceful flying after a sortie.",
+    "Save career GP, levels, kills and next-wave progress locally in this browser. If storage is blocked, keep session play available and state that progress is not saved.",
+    "Preserve V7 flight controls, both V8 maps, 1:100 scale, forgiving scenery contact, live updates and every prior version."
+  ],
+  "files": [
+    {
+      "path": ".nojekyll",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/InteriorTest.fbx",
+      "bytes": 1384188,
+      "sha256": "383a2269f797231bd38d5ab04d1bab685c0526b43b2cb920442d91b85bd96359"
+    },
+    {
+      "path": "assets/dining-room-info.json",
+      "bytes": 56445,
+      "sha256": "787d2565b26d24cccf74ec49b946ee567e82a380024864a6f1d789379e02e051"
+    },
+    {
+      "path": "assets/dining-room.glb",
+      "bytes": 5081352,
+      "sha256": "aa69667624c95314a5dffe2a8c8d988e0152977b556e7784925745b0d6820a73"
+    },
+    {
+      "path": "assets/favicon.svg",
+      "bytes": 205,
+      "sha256": "e93e179c557b2f66492916cbb9e46db71ba590e9c40daa528f4f7f981fc03eba"
+    },
+    {
+      "path": "assets/model-inspection.json",
+      "bytes": 95781,
+      "sha256": "150c8041e1eaf321990a3f9031520884152381a2ff92b77ba326093ab25adbb7"
+    },
+    {
+      "path": "index.html",
+      "bytes": 13744,
+      "sha256": "77954d40c1d8c88bc333795e8932d7c3b5057c6192bcc60a458b278e1d2498ea"
+    },
+    {
+      "path": "src/aircraft.js",
+      "bytes": 3249,
+      "sha256": "85acee84b3d72aeabddc89d8be928f3b0a21d5800ad1251b3a3581c496eb9c23"
+    },
+    {
+      "path": "src/audio.js",
+      "bytes": 2139,
+      "sha256": "35f73074dac7a76809a9d7bab9cb26b6eb326b83dd03f02faa75408973d53b29"
+    },
+    {
+      "path": "src/career.js",
+      "bytes": 2801,
+      "sha256": "f4093056db4e7e1bd050b39129ee09b23c16be322140f7252a792681736acbee"
+    },
+    {
+      "path": "src/combat.js",
+      "bytes": 14687,
+      "sha256": "1e1ff29c7c9ee8d5cb38985ce97dd8f6ad72bb5cb947ad0d9f5cebd3d99ab440"
+    },
+    {
+      "path": "src/flight.js",
+      "bytes": 5505,
+      "sha256": "5f7a215237cba3bbe176352beb24956845b4c01324c8c80600aef61fc60e943c"
+    },
+    {
+      "path": "src/hud-math.js",
+      "bytes": 303,
+      "sha256": "bc17a42d9b8af8264dc06d20958917cb3178551b88401c94724d97704a15209d"
+    },
+    {
+      "path": "src/hud.css",
+      "bytes": 16526,
+      "sha256": "f00c2104a702c4a7ca2e9ac9b2d2b2d682ebc57ce529874669af3cd533b597a1"
+    },
+    {
+      "path": "src/input.js",
+      "bytes": 737,
+      "sha256": "c6d2916386772402e476a4de21d998d2dd0561c54b81d460fce01cb7d74c425e"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 25571,
+      "sha256": "ef044876e2d0b268591bc9076ffba8be7f3e25432d1b64acd62600035a6139f5"
+    },
+    {
+      "path": "src/maps.js",
+      "bytes": 671,
+      "sha256": "9decbb508f22521519299ec5c87edcfcea349adef7c4a7d2cb8017784e4c9eba"
+    },
+    {
+      "path": "src/scenery-collision.js",
+      "bytes": 2600,
+      "sha256": "62f0186418556a41b4dcdceeaab3029bfdc4505aec45a9588a09f1fbab71e250"
+    },
+    {
+      "path": "src/surface-index.js",
+      "bytes": 3145,
+      "sha256": "d63b39c79ee446445c796cc5e285e8c7d4dd6562f1ec0a396e00dc8bd0439228"
+    },
+    {
+      "path": "src/ui.js",
+      "bytes": 8527,
+      "sha256": "30efc3ae725979554b458141ba171c31422ac522ea854f42ad6f9e16b3a0f2dd"
+    },
+    {
+      "path": "src/update-policy.js",
+      "bytes": 470,
+      "sha256": "35e4d61be98ee8704b5b079f281c880c122aed2a7c80128035f106eddc4a1733"
+    },
+    {
+      "path": "src/updates.js",
+      "bytes": 5223,
+      "sha256": "8071b57a34571512027a6c5319f8d0a3db8ec94606f0343915ab3127b6d9116a"
+    },
+    {
+      "path": "src/version.js",
+      "bytes": 134,
+      "sha256": "f4288d2b33aec0e4f97d1a33bdc307e822be3ee2783ef0104741c2540dd4ba6d"
+    },
+    {
+      "path": "src/world.js",
+      "bytes": 10479,
+      "sha256": "46987c2c453ef12e5c98c27c3c9dc9fd36744374eacd0f7b6727314b5e6d7010"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 13998,
+      "sha256": "b6c024bd6bfceaa10a0b513a92a4ea841e8eaa0d40490bf141b9bb1ee297968d"
+    },
+    {
+      "path": "vendor/three/LICENSE",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "path": "vendor/three/build/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "path": "vendor/three/build/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSCurve.js",
+      "bytes": 3888,
+      "sha256": "bef2607618a7778455e71a1f0bd206951c382d313e2e245808cc7d3533d60fb6"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSUtils.js",
+      "bytes": 10802,
+      "sha256": "c6bd7c4137d585098923f189687898ea3e8762ea3ecbe255d749a56353894379"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.LICENSE",
+      "bytes": 1069,
+      "sha256": "805f6cb28bb8b6d3a0badd83c93bccd9671fa01a3b4b92b7042b0743325ac243"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.module.js",
+      "bytes": 89384,
+      "sha256": "209a4412eb48ce609edb4391992a792ffcc3983d30ee7e2b0b89a8c470f3cd8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/loaders/FBXLoader.js",
+      "bytes": 104876,
+      "sha256": "d97724a6bea228003e02c64651d969a9a62003a00be314ef6995c390116f547d"
+    },
+    {
+      "path": "vendor/three/examples/jsm/loaders/GLTFLoader.js",
+      "bytes": 114739,
+      "sha256": "67ac5551fdafa6e349bd80c8f8e5e39c136d6b2fb1ad647db9abb21dc86f9e4a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/math/OBB.js",
+      "bytes": 13862,
+      "sha256": "3297db79bdf0a33525ef06fe7478fd921dcffb7699df1059e189bbdf2c0fae58"
+    },
+    {
+      "path": "vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "bytes": 35539,
+      "sha256": "fda7e946b8e0b5ab39b779206589e7a1079a22eb24efb89d7223e03fdfb1f751"
+    }
+  ],
+  "currentGameUrl": "https://camberdad.github.io/MicroFlyers/"
+}

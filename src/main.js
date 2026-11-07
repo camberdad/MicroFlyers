@@ -9,6 +9,12 @@ import { $, updateHUD, notify, hitMarker, flashDamage } from './ui.js';
 import { LiveUpdates } from './updates.js';
 import { MAPS, PLAYER_CORE_RADIUS } from './maps.js';
 import { resolveSceneryContact } from './scenery-collision.js';
+import { Career, roundConfig, loadoutFor, upgradeCost, MAX_UPGRADE } from './career.js';
+
+let careerStorage;
+try{careerStorage=localStorage;}catch{/* Embedded play still works without storage. */}
+const career = new Career(careerStorage);
+let selectedMode='free', sortie=null, shopPreviousMode=null;
 
 let scene, camera, renderer, aircraft, world, combat;
 let player = createFlightState();
@@ -61,9 +67,11 @@ async function init() {
     weaponNotice: message => notify(message.startsWith('NO MISSILE') ? 'NO LOCK' : 'REARMING',1200,message),
     hit: () => { hitMarker(); audio.tone(330, .06, 'square', .14); },
     kill: count => {
+      if(mode!=='playing'||!sortie)return;
+      const earned=career.recordKill(sortie.round);sortie.earned+=earned;
       audio.tone(95, .38, 'sawtooth', .45);
-      notify('SPLASH ONE',2200,`BANDIT DOWN · ${count} / 4 ELIMINATIONS`);
-      if (count === 4) missionPending = true;
+      notify(`+${earned} GP`,1800,`SPLASH ONE · ${count} / ${sortie.config.count} PLANES`);
+      if (count === sortie.config.count) missionPending = true;
     },
     damage: takeDamage,
   });
@@ -82,11 +90,51 @@ function refreshAirfieldUI() {
   $('room-label').textContent=`${world.map.name.toUpperCase()} / FREE FLIGHT + DOGFIGHT`;
   $('intro-description').textContent=`${world.map.description} Turn the room into your playground.`;
   $('load-label').textContent='Airfield ready · scenery contact causes no damage';
-  $('launch-label').textContent='Take flight';
   $('scene').dataset.model=world.map.asset;
   $('scene').dataset.map=world.map.id;
   $('scene').dataset.meshCount=String(world.meshCount);
   $('scene').setAttribute('aria-label',`Three-dimensional ${world.map.name.toLowerCase()} airfield`);
+}
+
+function refreshHangar() {
+  const state=career.state,config=roundConfig(state.round);
+  $('free-mode').setAttribute('aria-pressed',String(selectedMode==='free'));
+  $('career-mode').setAttribute('aria-pressed',String(selectedMode==='career'));
+  $('career-brief').classList.toggle('hidden',selectedMode!=='career');
+  $('career-progress').textContent=state.completed?'30 / 30 ROUNDS COMPLETE':`ROUND ${state.round} / 30 · WAVE ${state.wave} / ${config.waves}`;
+  $('hangar-gp').textContent=`${state.gp.toLocaleString()} GP`;
+  $('career-levels').textContent=`Shots ${state.shots}/5 · Armor ${state.armor}/5 · ${config.reward} GP per kill`;
+  $('launch-label').textContent=selectedMode==='free'?'Free fly':state.completed?'Career complete':`Fly round ${state.round}`;
+  $('launch-button').disabled=switchingMap||selectedMode==='career'&&state.completed;
+  $('save-note').textContent=career.saved?'Career auto-saves in this browser.':'Session progress only · browser storage unavailable.';
+}
+
+function openShop() {
+  if(!['intro','won','lost'].includes(mode))return;
+  shopPreviousMode=mode;setMode('shop');resetInput();
+  $('shop-panel').classList.remove('hidden');refreshShop();$('close-shop').focus();
+}
+function refreshShop() {
+  $('shop-gp').textContent=`${career.state.gp.toLocaleString()} GP`;
+  const loadout=loadoutFor(career.state);
+  for(const kind of ['shots','armor']) {
+    const level=career.state[kind],cost=upgradeCost(kind,level),button=$(`buy-${kind}`);
+    $(`${kind}-level`).textContent=`LEVEL ${level} / ${MAX_UPGRADE}`;
+    button.disabled=cost===null||career.state.gp<cost;
+    button.textContent=cost===null?'Fully upgraded':career.state.gp<cost?`Need ${cost-career.state.gp} more GP`:`Upgrade · ${cost} GP`;
+    $(`${kind}-cost`).textContent=cost===null?'MAX LEVEL':`Next upgrade: ${cost} GP`;
+  }
+  $('shots-detail').textContent=`${loadout.gunDamage} gun damage · ${loadout.missileDamage} missile damage · ${Math.round(1/loadout.gunInterval)} shots/sec`;
+  $('armor-detail').textContent=`${loadout.maxHealth} hull points · +30 per upgrade`;
+  $('shop-save').textContent=career.saved?'GP, upgrades and wave progress save in this browser.':'Storage unavailable: progress lasts for this session.';
+}
+function closeShop() {
+  $('shop-panel').classList.add('hidden');setMode(shopPreviousMode||'intro');shopPreviousMode=null;
+  refreshHangar();
+  if(mode==='won'||mode==='lost'){
+    $('result-detail').textContent=sortieSummary(mode==='won');renderFlightHUD();
+  }
+  (mode==='intro'?$('shop-button'):$('result-shop')).focus();
 }
 
 async function selectAirfield() {
@@ -121,12 +169,12 @@ function setMode(next) {
 function returnToHangar() {
   if (!world || switchingMap) return;
   resetInput(); helpPreviousMode = null; missionPending = false;
-  for (const id of ['hud', 'pause-panel', 'result-panel', 'help-panel']) $(id).classList.add('hidden');
+  for (const id of ['hud', 'pause-panel', 'result-panel', 'help-panel','shop-panel']) $(id).classList.add('hidden');
   for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label']) $(id).classList.remove('hidden');
-  player = createFlightState(world.spawn); combat.reset();
+  player = createFlightState(world.spawn); combat.reset({count:0});
   aircraft.visible = true; aircraft.position.copy(world.showcase); aircraft.rotation.set(.04,world.heading-.15,-.15);
   camera.fov = 61; camera.updateProjectionMatrix();
-  $('launch-button').disabled = false;
+  refreshHangar();
   setMode('intro'); updates.check();
   $('launch-button').focus();
 }
@@ -137,19 +185,28 @@ function resetInput() {
 
 function launch() {
   if (!world || switchingMap) return;
+  if(selectedMode==='career'&&career.state.completed)return;
+  const upgrades=loadoutFor(career.state);
+  sortie=selectedMode==='career'?{round:career.state.round,wave:career.state.wave,config:roundConfig(career.state.round),earned:0}:null;
   player = createFlightState(world.spawn);
+  player.maxHealth=selectedMode==='career'?upgrades.maxHealth:100;player.health=player.maxHealth;
   player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),world.heading);
   player.velocity.copy(forwardVector(player)).multiplyScalar(player.speed);
-  combat.reset(); elapsed = 0; simulationTime = 0; missionPending = false;
+  combat.reset(sortie?{...sortie.config,loadout:upgrades}:{count:0}); elapsed = 0; simulationTime = 0; missionPending = false;
   resetInput();
-  for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label', 'pause-panel', 'result-panel', 'help-panel']) $(id).classList.add('hidden');
+  for (const id of ['intro', 'scene-caption', 'intro-footer', 'room-label', 'pause-panel', 'result-panel', 'help-panel','shop-panel']) $(id).classList.add('hidden');
   $('hud').classList.remove('hidden');
-  $('mission-label').textContent = 'Clear the airspace'; $('mission-detail').textContent = 'Track and eliminate 4 rogue drones';
+  $('sortie-mode').textContent=sortie?'CAREER · 30 ROUNDS':'FREE FLY';
+  $('mission-label').textContent=sortie?`Round ${sortie.round} / 30`:'The room is yours';
+  $('mission-detail').textContent=sortie?`Wave ${sortie.wave} / ${sortie.config.waves} · ${sortie.config.count} ${sortie.config.count===1?'plane':'planes'} · ${sortie.config.reward} GP per kill`:'No enemies. No damage. Explore at your pace.';
+  $('kill-total').textContent=sortie?` / ${String(sortie.config.count).padStart(2,'0')} · DOWN`:' · NO HOSTILES';
+  $('career-hud').classList.toggle('hidden',!sortie);
+  $('mission-progress').replaceChildren(...Array.from({length:sortie?.config.count??0},()=>document.createElement('i')));
   aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.visible = true;
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).addScaledVector(forwardVector(player),-3.2);camera.position.y+=.9;
-  setMode('playing');
-  notify('CLEARED FOR TAKEOFF',3200,'A/D TURNS DIRECTLY · SPACE THROTTLE UP · SHIFT BRAKE');
+  setMode(sortie?'playing':'exploring');
+  notify(sortie?`ROUND ${sortie.round} · WAVE ${sortie.wave}`:'FREE FLY',3200,sortie?(sortie.config.attacks?'CLEAR THE WAVE · GP BANKED PER KILL':'TARGET PRACTICE · ENEMIES DO NOT FIRE'):'NO ENEMIES · EXPLORE BOTH AIRFIELDS');
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -174,33 +231,46 @@ function closeHelp() {
   $('help-panel').classList.add('hidden'); setMode(helpPreviousMode || 'intro'); helpPreviousMode = null;
   if (mode === 'playing' || mode === 'exploring') renderer.domElement.focus({ preventScroll: true });
   else if (mode === 'paused') $('resume-button').focus();
+  else if (mode === 'shop') $('close-shop').focus();
   else if (mode === 'won' || mode === 'lost') $('again-button').focus();
   else $('help-button').focus();
 }
 
+function sortieSummary(won) {
+  return `Round ${sortie.round} · Wave ${sortie.wave} · ${combat.kills} / ${sortie.config.count} planes down. ${sortie.earned} GP earned; ${career.state.gp} GP banked. ${won?'Hull repaired for the next wave.':'Your GP is safe. Retry this wave with a repaired plane.'}`;
+}
+
 function finish(won) {
-  if (mode !== 'playing' && mode !== 'exploring') return;
+  if (mode !== 'playing' || !sortie) return;
+  if(won)career.completeWave(sortie.round,sortie.wave);
   setMode(won ? 'won' : 'lost'); resetInput();
   $('result-panel').classList.remove('hidden');
-  $('result-eyebrow').textContent = won ? 'MISSION COMPLETE' : 'AIRFRAME LOST';
-  $('result-title').textContent = won ? 'Airspace secured.' : 'A rough landing.';
-  $('result-detail').textContent = won ? `Four drones down in ${Math.floor(elapsed / 60)}m ${Math.floor(elapsed % 60)}s. The room is yours.` : `${combat.kills} of 4 drones eliminated. Give it another go.`;
-  $('explore-button').classList.toggle('hidden', !won);
+  $('result-eyebrow').textContent=career.state.completed?'30 ROUNDS COMPLETE':won?'WAVE CLEARED':'AIRFRAME LOST';
+  $('result-title').textContent=career.state.completed?'Career complete.':won?'Airspace secured.':'Ready for another run?';
+  $('result-detail').textContent=sortieSummary(won);
+  $('again-button').disabled=career.state.completed;
+  $('again-button').textContent=career.state.completed?'Career complete':won?`Next · Round ${career.state.round}, wave ${career.state.wave}`:'Retry wave';
   $('again-button').focus();
-  updateHUD(player, combat, camera, input, world, elapsed);
+  renderFlightHUD();
   if (won) audio.tone(640, .65, 'sine', .45);
 }
 
 function takeDamage(amount, reason) {
-  if ((mode !== 'playing' && mode !== 'exploring') || player.invulnerable > 0) return;
+  if (mode !== 'playing' || player.invulnerable > 0) return;
   player.health = Math.max(0, player.health - amount); player.invulnerable = 1.1;
-  flashDamage(); notify(reason,1200,`AIRFRAME ${Math.ceil(player.health)}% · BREAK AWAY`); audio.tone(65, .2, 'sawtooth', .4);
+  flashDamage(); notify(reason,1200,`AIRFRAME ${Math.ceil(player.health)} / ${player.maxHealth} · BREAK AWAY`); audio.tone(65, .2, 'sawtooth', .4);
   if (player.health <= 0) { combat.burst(player.position, 30); finish(false); }
 }
 
 function readInput() {
   readKeyboardFlight(keys,input,controlSettings);
   input.fire = mouseFire;
+}
+
+function renderFlightHUD() {
+  updateHUD(player,combat,camera,input,world,elapsed);
+  $('flight-gp').textContent=`${career.state.gp} GP`;
+  $('armor-points').textContent=`${Math.ceil(player.health)} / ${player.maxHealth} HP`;
 }
 
 function updatePlayerCollision() {
@@ -256,7 +326,7 @@ function animate(timestamp) {
     aircraft.userData.exhaust.scale.z = player.engineThrottle>.85 && !input.brake ? 2 : .75+player.engineThrottle*.3;
     updateCamera(dt);
     hudAccumulator += dt;
-    if (hudAccumulator > 1 / 30) { updateHUD(player, combat, camera, input, world, elapsed); hudAccumulator = 0; }
+    if (hudAccumulator > 1 / 30) { renderFlightHUD(); hudAccumulator = 0; }
   } else if (mode === 'intro' && world) {
     combat.update(dt, player, false);
     aircraft.position.y = world.showcase.y + Math.sin(timestamp * .0008) * .09;
@@ -282,6 +352,10 @@ async function toggleSound() {
   if (mode === 'playing' || mode === 'exploring') renderer.domElement.focus({ preventScroll: true });
 }
 function bindEvents() {
+  for(const [id,value] of [['free-mode','free'],['career-mode','career']])$(id).addEventListener('click',()=>{selectedMode=value;refreshHangar();});
+  $('shop-button').addEventListener('click',openShop);$('result-shop').addEventListener('click',openShop);
+  $('close-shop').addEventListener('click',closeShop);$('shop-done').addEventListener('click',closeShop);
+  for(const kind of ['shots','armor'])$(`buy-${kind}`).addEventListener('click',()=>{if(career.buy(kind)){$('shop-feedback').textContent=`${kind==='shots'?'Shots':'Armor'} upgraded to level ${career.state[kind]}. Applies next wave.`;}refreshShop();refreshHangar();});
   $('map-select').addEventListener('change',selectAirfield);
   $('pitch-style').value = controlSettings.pitchStyle;
   $('flight-sensitivity').value = String(controlSettings.sensitivity);
@@ -301,9 +375,7 @@ function bindEvents() {
   $('result-hangar-button').addEventListener('click', returnToHangar);
   document.querySelector('.brand').addEventListener('click', event => { event.preventDefault(); returnToHangar(); });
   $('explore-button').addEventListener('click', () => {
-    $('result-panel').classList.add('hidden'); setMode('exploring'); resetInput();
-    $('mission-label').textContent = 'The room is yours'; $('mission-detail').textContent = 'Free flight · explore every corner';
-    renderer.domElement.focus({ preventScroll: true });
+    selectedMode='free';launch();
   });
   $('help-button').addEventListener('click', showHelp); $('close-help').addEventListener('click', closeHelp); $('help-done').addEventListener('click', closeHelp);
   $('sound-button').addEventListener('click', toggleSound); $('fullscreen-button').addEventListener('click', fullscreen);
@@ -324,7 +396,7 @@ function bindEvents() {
       return;
     }
     if (event.code === 'Escape') {
-      if (mode === 'help') closeHelp(); else if (mode === 'paused') resume(); else pause();
+      if (mode === 'help') closeHelp();else if(mode==='shop')closeShop(); else if (mode === 'paused') resume(); else pause();
       return;
     }
     if (event.repeat) return;
@@ -332,7 +404,7 @@ function bindEvents() {
     if (event.target instanceof HTMLElement && ['BUTTON','A','INPUT','SELECT','TEXTAREA'].includes(event.target.tagName)) return;
     const active = mode === 'playing' || mode === 'exploring';
     if (active && flightCodes.has(event.code)) { event.preventDefault(); keys.add(event.code); }
-    if (event.code === 'KeyR' && world && mode !== 'loading') launch();
+    if (event.code === 'KeyR' && world && ['playing','exploring','paused','lost'].includes(mode)) launch();
     if (event.code === 'KeyF') fullscreen(); if (event.code === 'KeyV') toggleSound();
   });
   addEventListener('keyup', event => { keys.delete(event.code); });

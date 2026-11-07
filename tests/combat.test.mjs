@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/build/three.module.js';
 import { Combat, MISSILE } from '../src/combat.js';
 import { createFlightState } from '../src/flight.js';
+import {roundConfig,loadoutFor} from '../src/career.js';
 
 function setup(colliders = []) {
   const scene = new THREE.Scene();
@@ -45,6 +46,22 @@ test('touching a drone causes no contact damage and shots can miss the smaller p
   player.position.set(0,16,10);
   combat.addBullet(new THREE.Vector3(.3,16,0),new THREE.Vector3(0,0,85),true);
   combat.update(.15,player);assert.equal(events.damage,0);
+});
+
+test('Free Fly has no enemies and career practice planes never shoot',()=>{
+  const {combat,player,events}=setup();combat.reset({count:0});combat.update(60,player);
+  assert.equal(combat.drones.length,0);assert.equal(combat.bullets.length,0);assert.equal(events.damage,0);
+  combat.reset(roundConfig(1));assert.equal(combat.drones.length,1);assert.equal(combat.drones[0].ring,null);
+  combat.drones[0].cooldown=0;combat.update(10,player);assert.equal(combat.bullets.length,0);
+});
+
+test('career loadouts change actual shot damage; eliminated planes reward exactly once',()=>{
+  const {combat,player,events}=setup();
+  combat.reset({...roundConfig(9),count:1,loadout:loadoutFor({shots:1,armor:0})});
+  const drone=combat.drones[0];drone.mesh.position.set(0,16,0);drone.health=2;drone.cooldown=100;
+  combat.shoot(player);combat.update(.15,player);
+  assert.equal(events.kills,1);assert.equal(drone.alive,false);
+  combat.shoot(player);combat.update(.15,player);assert.equal(events.kills,1);
 });
 test('fire cooldown limits rate; restart removes old bullets, effects, and drones', () => {
   const { combat, player, scene } = setup();

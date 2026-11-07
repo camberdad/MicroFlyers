@@ -1,19 +1,20 @@
 {
-  "version": "V8",
-  "versionNumber": 8,
-  "assetVersion": "v8-e0aa0c39318c",
-  "publishedAtUtc": "2026-11-07T05:53:27.367Z",
+  "version": "V9",
+  "versionNumber": 9,
+  "assetVersion": "v9-6f4e5ef095fe",
+  "publishedAtUtc": "2026-11-07T06:09:53.689Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v8/",
-  "description": "Second airfield, 1:100 micro jet and forgiving collisions",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v9/",
+  "description": "Free Fly, 30-round Career and GP upgrades",
   "changes": [
-    "Add The Dining Room as Airfield 02, selectable from the hangar alongside the original Living Room.",
-    "Prepare the supplied 168 MB room.obj as a roughly 5 MB indexed GLB with 236 named meshes, simplified furniture geometry and curated materials. Load it only when selected and cache both maps for return visits.",
-    "Give each map its own launch position, overview camera, room bounds, radar label and drone patrol area.",
-    "Change the miniature jet from 1:60 to 1:100: 60% of its former dimensions, with a closer chase camera and proportionally smaller missiles.",
-    "Replace oversized aircraft/furniture box contact with a small 0.13-unit central core and accelerated triangle-surface checks, allowing close passes and flight through actual furniture gaps.",
-    "Remove scenery, boundary and drone-contact damage, collision warnings, harsh bounce-backs, forced heading/speed changes and spawn resets. Contact separates/slides the aircraft gently; hostile gunfire still damages the hull.",
-    "Keep V7 flight controls, live updates, the stable share/embed link and all previous releases."
+    "Add two hangar modes on both maps: peaceful Free Fly with no enemies or damage, and a saved 30-round Career with waves of enemy planes.",
+    "Begin with one slow, one-hit practice plane and no incoming fire in rounds 1–2. Place opening practice targets in a clear lane ahead of takeoff.",
+    "Gradually increase enemy count from 1 to 8, waves per round from 1 to 3, enemy hull strength, patrol speed, projectile speed/damage and firing accuracy/frequency. The full career contains 60 waves and ends after round 30.",
+    "Award and immediately bank 25–50 GP per career kill. Keep earned GP after a defeat or return to the hangar; resume the current uncleared wave after reloading.",
+    "Add a GP upgrade hangar accessible before launch and between waves: five shot levels increase gun/missile damage and firing rate; five armor levels add 30 hull points each, up to 250.",
+    "Show round, wave, target count, GP and actual hull capacity in the HUD; repair/rearm at each wave launch. Offer the next wave, retry, upgrades or peaceful flying after a sortie.",
+    "Save career GP, levels, kills and next-wave progress locally in this browser. If storage is blocked, keep session play available and state that progress is not saved.",
+    "Preserve V7 flight controls, both V8 maps, 1:100 scale, forgiving scenery contact, live updates and every prior version."
   ],
   "files": [
     {
@@ -48,8 +49,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 11133,
-      "sha256": "b1f3ac4b3d54c48385eb42ae784a89013fa435567e3e681f815e974e096039bf"
+      "bytes": 13744,
+      "sha256": "77954d40c1d8c88bc333795e8932d7c3b5057c6192bcc60a458b278e1d2498ea"
     },
     {
       "path": "src/aircraft.js",
@@ -62,9 +63,14 @@
       "sha256": "35f73074dac7a76809a9d7bab9cb26b6eb326b83dd03f02faa75408973d53b29"
     },
     {
+      "path": "src/career.js",
+      "bytes": 2801,
+      "sha256": "f4093056db4e7e1bd050b39129ee09b23c16be322140f7252a792681736acbee"
+    },
+    {
       "path": "src/combat.js",
-      "bytes": 12833,
-      "sha256": "e5f3b9d39a3bb6fec2bb07f24fe034804efbd4b71fae02c5045012d2c253cbd1"
+      "bytes": 14687,
+      "sha256": "1e1ff29c7c9ee8d5cb38985ce97dd8f6ad72bb5cb947ad0d9f5cebd3d99ab440"
     },
     {
       "path": "src/flight.js",
@@ -78,8 +84,8 @@
     },
     {
       "path": "src/hud.css",
-      "bytes": 12632,
-      "sha256": "903fcb6e0387325884b65eb1dfc4cdae804973efc6d378a6786233a547fbbd74"
+      "bytes": 16526,
+      "sha256": "f00c2104a702c4a7ca2e9ac9b2d2b2d682ebc57ce529874669af3cd533b597a1"
     },
     {
       "path": "src/input.js",
@@ -88,8 +94,8 @@
     },
     {
       "path": "src/main.js",
-      "bytes": 20389,
-      "sha256": "186ccd3995088bd7bc20c4f806759f364c85262405bea11fe0f02a8b9a432dcc"
+      "bytes": 25571,
+      "sha256": "ef044876e2d0b268591bc9076ffba8be7f3e25432d1b64acd62600035a6139f5"
     },
     {
       "path": "src/maps.js",
@@ -108,8 +114,8 @@
     },
     {
       "path": "src/ui.js",
-      "bytes": 8171,
-      "sha256": "aa1bbfe1c10c5cd6dea2afcf7309477518c985a92a838b862f4cef9673a8f454"
+      "bytes": 8527,
+      "sha256": "30efc3ae725979554b458141ba171c31422ac522ea854f42ad6f9e16b3a0f2dd"
     },
     {
       "path": "src/update-policy.js",
@@ -124,7 +130,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "34725daa0f84f46803e7c82c3abc9dfedb1c4b8b6f505678a4ac8405ef1fe346"
+      "sha256": "f4288d2b33aec0e4f97d1a33bdc307e822be3ee2783ef0104741c2540dd4ba6d"
     },
     {
       "path": "src/world.js",

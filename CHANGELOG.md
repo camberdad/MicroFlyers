@@ -2,6 +2,17 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V9 — Free Fly, 30-round Career and GP upgrades
+
+- Add two hangar modes on both maps: peaceful Free Fly with no enemies or damage, and a saved 30-round Career with waves of enemy planes.
+- Begin with one slow, one-hit practice plane and no incoming fire in rounds 1–2. Place opening practice targets in a clear lane ahead of takeoff.
+- Gradually increase enemy count from 1 to 8, waves per round from 1 to 3, enemy hull strength, patrol speed, projectile speed/damage and firing accuracy/frequency. The full career contains 60 waves and ends after round 30.
+- Award and immediately bank 25–50 GP per career kill. Keep earned GP after a defeat or return to the hangar; resume the current uncleared wave after reloading.
+- Add a GP upgrade hangar accessible before launch and between waves: five shot levels increase gun/missile damage and firing rate; five armor levels add 30 hull points each, up to 250.
+- Show round, wave, target count, GP and actual hull capacity in the HUD; repair/rearm at each wave launch. Offer the next wave, retry, upgrades or peaceful flying after a sortie.
+- Save career GP, levels, kills and next-wave progress locally in this browser. If storage is blocked, keep session play available and state that progress is not saved.
+- Preserve V7 flight controls, both V8 maps, 1:100 scale, forgiving scenery contact, live updates and every prior version.
+
 ## V8 — Second airfield, 1:100 micro jet and forgiving collisions
 
 - Add The Dining Room as Airfield 02, selectable from the hangar alongside the original Living Room.

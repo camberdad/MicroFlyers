@@ -5,6 +5,19 @@ import * as THREE from '../vendor/three/build/three.module.js';
 import { FBXLoader } from '../vendor/three/examples/jsm/loaders/FBXLoader.js';
 import { isSafePosition,prepareAirfield } from '../src/world.js';
 import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js';
+import {Combat} from '../src/combat.js';
+import {roundConfig} from '../src/career.js';
+import {createFlightState} from '../src/flight.js';
+
+function checkCareerSpawns(world){
+  const combat=new Combat(new THREE.Scene(),world,{});
+  combat.reset(roundConfig(1));
+  const player=createFlightState(world.spawn);player.quaternion.setFromAxisAngle(new THREE.Vector3(0,1,0),world.heading);
+  assert.ok(combat.getMissileTarget(player),'opening practice target is visible from takeoff');
+  combat.reset(roundConfig(30));assert.equal(combat.drones.length,8);
+  assert.ok(combat.drones.every(d=>isSafePosition(world,d.mesh.position,.6)),'final-round planes spawn clear');
+  combat.reset({count:0});
+}
 
 test('the actual supplied FBX parses, normalizes, and has a clear launch position', async () => {
   globalThis.window = { innerWidth: 1100, innerHeight: 800 };
@@ -29,6 +42,7 @@ test('the actual supplied FBX parses, normalizes, and has a clear launch positio
   const prepared=prepareAirfield(model,'living');
   assert.ok(isSafePosition(prepared,prepared.spawn,.13));
   assert.equal(prepared.meshCount,231);
+  checkCareerSpawns(prepared);
 });
 
 test('prepared dining OBJ retains its room and furniture with safe launch and drone patrols',async()=>{
@@ -39,6 +53,7 @@ test('prepared dining OBJ retains its room and furniture with safe launch and dr
   assert.ok(Math.abs(new THREE.Box3().setFromObject(world.room).getSize(new THREE.Vector3()).x-120)<.01);
   assert.ok(isSafePosition(world,world.spawn));
   assert.ok(world.bounds.containsPoint(world.patrol.center));
+  checkCareerSpawns(world);
   for(let phase=0;phase<Math.PI*2;phase+=.25){
     const position=world.patrol.center.clone().add(new THREE.Vector3(Math.sin(phase)*19,Math.sin(phase*1.7)*1.5,Math.cos(phase)*18));
     assert.ok(isSafePosition(world,position,.6),`patrol phase ${phase}`);

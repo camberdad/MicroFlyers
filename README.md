@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V8.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V9.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -25,6 +25,12 @@ On Windows, you can also double-click **Start-MicroFlyers.cmd**. It uses an inst
 The interface adapts to smaller screens, but flight is designed for a desktop keyboard and mouse.
 
 ## Fly
+
+Choose **Free Fly** for peaceful exploration with no enemies, objectives or damage. Choose **Career** for 30 rounds of enemy-plane waves on either map. Rounds 1–2 have a single slow, one-hit practice plane that does not fire. Later rounds gradually add planes (up to eight at once), waves (one in rounds 1–10, two in 11–20, three in 21–30), stronger enemies, faster patrols and more accurate/frequent incoming fire. The campaign contains 60 waves and finishes at round 30.
+
+Every career kill immediately banks **25–50 GP**, increasing with the round. Open **Upgrade hangar** before launching or between waves. Shots has five levels: each adds one gun and missile damage and increases the gun's firing rate. Armor has five levels: each adds 30 hull points, from 100 to 250. Shot upgrade prices are 25, 100, 225, 400 and 625 GP; armor costs 40, 160, 360, 640 and 1,000 GP. Both the price and resulting stats appear before buying. Upgrades apply at the next career wave launch, which also repairs and rearms the plane. Free Fly uses the standard loadout and never earns or spends GP automatically.
+
+Clearing a wave saves the next wave/round. Defeat, restarting or returning to the hangar retains banked GP and upgrades but restarts the current uncleared wave. The result screen offers Next wave, Retry, upgrades and Free Fly. Progress is shared across both maps and saved under `microflyers.career.v1` in this browser's local storage; it does not sync across devices or browsers, and clearing site data removes it. If storage is unavailable, the interface says that play is session-only. No accounts or real-money purchases are involved.
 
 | Input | Action |
 | --- | --- |
@@ -74,7 +80,8 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/surface-index.js`, `src/scenery-collision.js` | Packed triangle BVH, precise close passes and damage-free contact separation |
 | `src/flight.js` | Quaternion flight, pitch/roll/yaw, minimum speed, boost/brake, momentum, swept segment helper |
 | `src/aircraft.js` | Procedural micro jet model |
-| `src/combat.js` | Four drone patrols, gunfire, homing missiles, lock selection, reloads, trails, nearest swept hits and damage |
+| `src/combat.js` | Configurable enemy-plane waves/patrols, weapon loadouts, homing missiles, line of sight, swept hits and damage |
+| `src/career.js` | Thirty-round difficulty curve, wave progression, GP rewards, upgrade prices/loadouts and validated browser saves |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
 | `src/hud.css`, `src/hud-math.js` | Footage-inspired HUD layout, compass calculations and cardinal directions |
 | `src/audio.js` | Optional synthesized audio, started from a user gesture |
