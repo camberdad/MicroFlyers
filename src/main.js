@@ -10,14 +10,14 @@ import { LiveUpdates } from './updates.js';
 let scene, camera, renderer, aircraft, world, combat;
 let player = createFlightState();
 let mode = 'loading', helpPreviousMode = null, elapsed = 0, previousTime = 0;
-let mouseFlight = false, mouseFire = false, mouseX = 0, mouseY = 0;
-let flightAssist = true;
+let mouseFlight = true, mouseFire = false, mouseX = 0, mouseY = 0;
 let hudAccumulator = 0, simulationTime = 0, missionPending = false;
 const keys = new Set();
 const audio = new AudioEngine();
 const updates = new LiveUpdates(returnToHangar);
-const input = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false, fire: false, assist: true };
+const input = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false, fire: false };
 const forward = new THREE.Vector3(), cameraDesired = new THREE.Vector3(), cameraTarget = new THREE.Vector3();
+const cameraUp = new THREE.Vector3(), cameraRotation = new THREE.Matrix4(), cameraOrientation = new THREE.Quaternion();
 const previousPosition = new THREE.Vector3(), collisionNormal = new THREE.Vector3();
 const playerBox = new THREE.Box3(), cameraRay = new THREE.Ray(), intersection = new THREE.Vector3();
 const playerLocalBox = new THREE.Box3(new THREE.Vector3(-.94, -.15, -1.08), new THREE.Vector3(.94, .45, .78));
@@ -70,6 +70,9 @@ async function init() {
 function setMode(next) {
   mode = next; $('app').dataset.state = next;
   $('app').classList.toggle('playing', next !== 'intro' && next !== 'loading');
+  const cursorActive = mouseFlight && (next === 'playing' || next === 'exploring');
+  $('app').classList.toggle('cursor-flight', cursorActive);
+  $('steering-cursor').classList.toggle('hidden', !cursorActive);
   updates.setState(next);
 }
 
@@ -86,7 +89,10 @@ function returnToHangar() {
   $('launch-button').focus();
 }
 
-function resetInput() { keys.clear(); mouseFire = false; mouseX = mouseY = 0; }
+function resetInput() {
+  keys.clear(); mouseFire = false; mouseX = mouseY = 0;
+  $('steering-cursor').style.left = '50%'; $('steering-cursor').style.top = '50%';
+}
 
 function launch() {
   if (!world) return;
@@ -100,7 +106,7 @@ function launch() {
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).add(new THREE.Vector3(0, 1.15, 4.3));
   setMode('playing');
-  notify('AIRSPACE IS YOURS. HAPPY HUNTING.', 3200);
+  notify(mouseFlight ? 'CURSOR STEERS · LEFT CLICK FIRES · FULL ROLLS ENABLED' : 'MANUAL FLIGHT · FULL ROLLS ENABLED', 3200);
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -155,7 +161,6 @@ function readInput() {
   input.yaw = (keys.has('KeyQ') ? 1 : 0) - (keys.has('KeyE') ? 1 : 0);
   input.boost = keys.has('ShiftLeft') || keys.has('ShiftRight'); input.brake = keys.has('Space');
   input.fire = mouseFire || keys.has('Space');
-  input.assist = flightAssist;
 }
 
 function updatePlayerCollision() {
@@ -190,7 +195,8 @@ function directionAfterImpact(state, normal) {
 
 function updateCamera(dt) {
   forwardVector(player, forward);
-  cameraDesired.copy(player.position).addScaledVector(forward, -4.3); cameraDesired.y += 1.15;
+  cameraUp.set(0, 1, 0).applyQuaternion(player.quaternion);
+  cameraDesired.set(0, 1.15, 4.3).applyQuaternion(player.quaternion).add(player.position);
   // Shorten the chase arm before a wall can obscure the aircraft.
   const offset = cameraDesired.clone().sub(player.position);
   let distance = offset.length();
@@ -201,8 +207,12 @@ function updateCamera(dt) {
   }
   cameraDesired.copy(player.position).addScaledVector(cameraRay.direction, distance);
   camera.position.lerp(cameraDesired, 1 - Math.exp(-8 * dt));
-  cameraTarget.copy(player.position).addScaledVector(forward, 7); cameraTarget.y += .35;
-  camera.up.set(0, 1, 0); camera.lookAt(cameraTarget);
+  cameraTarget.copy(player.position).addScaledVector(forward, 7).addScaledVector(cameraUp, .35);
+  // Follow the aircraft's up vector through vertical loops and inverted flight.
+  // Quaternion camera smoothing avoids the world-up flip at the top of a loop.
+  cameraRotation.lookAt(camera.position, cameraTarget, cameraUp);
+  cameraOrientation.setFromRotationMatrix(cameraRotation);
+  camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-10 * dt));
   const targetFov = input.boost && !input.brake ? 70 : 61;
   camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-3 * dt));
   camera.updateProjectionMatrix(); camera.updateMatrixWorld();
@@ -258,17 +268,10 @@ async function toggleSound() {
 }
 function toggleMouse() {
   mouseFlight = !mouseFlight; mouseX = mouseY = 0;
-  $('mouse-button').innerHTML = `MOUSE FLIGHT <b>${mouseFlight ? 'ON' : 'OFF'}</b>`;
+  $('mouse-button').innerHTML = `CURSOR STEERING <b>${mouseFlight ? 'ON' : 'OFF'}</b>`;
   $('mouse-button').setAttribute('aria-pressed', String(mouseFlight));
-  notify(mouseFlight ? 'MOUSE FLIGHT ON · MOVE FROM CENTER TO STEER' : 'KEYBOARD FLIGHT');
-  renderer.domElement.focus({ preventScroll: true });
-}
-
-function toggleAssist() {
-  flightAssist = !flightAssist;
-  $('assist-button').innerHTML = `FLIGHT ASSIST <b>${flightAssist ? 'ON' : 'OFF'}</b>`;
-  $('assist-button').setAttribute('aria-pressed', String(flightAssist));
-  notify(flightAssist ? 'FLIGHT ASSIST ON · RELEASE KEYS TO LEVEL' : 'MANUAL FLIGHT · FULL ROLL AND LOOPS');
+  setMode(mode);
+  notify(mouseFlight ? 'CURSOR STEERING · CENTER CURSOR TO STOP ROTATING' : 'KEYBOARD FLIGHT · FULL ROLL AND LOOPS');
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -287,7 +290,6 @@ function bindEvents() {
   $('help-button').addEventListener('click', showHelp); $('close-help').addEventListener('click', closeHelp); $('help-done').addEventListener('click', closeHelp);
   $('sound-button').addEventListener('click', toggleSound); $('fullscreen-button').addEventListener('click', fullscreen);
   $('mouse-button').addEventListener('click', toggleMouse);
-  $('assist-button').addEventListener('click', toggleAssist);
   const flightCodes = new Set(['KeyW','KeyS','KeyA','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight','Space']);
   addEventListener('keydown', event => {
     if (event.code === 'Tab') {
@@ -314,7 +316,6 @@ function bindEvents() {
     const active = mode === 'playing' || mode === 'exploring';
     if (active && flightCodes.has(event.code)) { event.preventDefault(); keys.add(event.code); }
     if (event.code === 'KeyM' && active) toggleMouse();
-    if (event.code === 'KeyC' && active) toggleAssist();
     if (event.code === 'KeyR' && world && mode !== 'loading') launch();
     if (event.code === 'KeyF') fullscreen(); if (event.code === 'KeyV') toggleSound();
   });
@@ -328,11 +329,15 @@ function bindEvents() {
   renderer.domElement.addEventListener('pointermove', event => {
     if (!mouseFlight) return;
     const rect = renderer.domElement.getBoundingClientRect();
-    mouseX = THREE.MathUtils.clamp(((event.clientX - rect.left) / rect.width - .5) * 2, -1, 1);
-    mouseY = THREE.MathUtils.clamp(((event.clientY - rect.top) / rect.height - .5) * 2, -1, 1);
-    if (Math.abs(mouseX) < .06) mouseX = 0; if (Math.abs(mouseY) < .06) mouseY = 0;
+    // Full authority at 65% of the distance from screen center to an edge.
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+    mouseX = THREE.MathUtils.clamp((x - .5) * 2 / .65, -1, 1);
+    mouseY = THREE.MathUtils.clamp((y - .5) * 2 / .65, -1, 1);
+    $('steering-cursor').style.left = `${x * 100}%`;
+    $('steering-cursor').style.top = `${y * 100}%`;
   });
-  renderer.domElement.addEventListener('pointerleave', () => { mouseX = mouseY = 0; mouseFire = false; });
+  renderer.domElement.addEventListener('pointerleave', resetInput);
   addEventListener('blur', () => { resetInput(); pause(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInput(); pause(); } });
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });

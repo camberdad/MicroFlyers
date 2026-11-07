@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
 export const FLIGHT = Object.freeze({ minSpeed: 4.5, cruiseSpeed: 8.5, boostSpeed: 19, maxHealth: 100 });
+export const CONTROL = Object.freeze({ pitchRate: 2.1, rollRate: 3.8, yawRate: 1.2, response: 14 });
 const X = new THREE.Vector3(1, 0, 0);
 const Y = new THREE.Vector3(0, 1, 0);
 const Z = new THREE.Vector3(0, 0, 1);
@@ -9,28 +10,9 @@ const forward = new THREE.Vector3();
 const right = new THREE.Vector3();
 const up = new THREE.Vector3();
 const desiredVelocity = new THREE.Vector3();
-const attitude = new THREE.Euler(0, 0, 0, 'YXZ');
-export const ASSIST = Object.freeze({ maxPitch: THREE.MathUtils.degToRad(32), maxBank: THREE.MathUtils.degToRad(48) });
-
-export function steeringCurve(value, deadzone = .045) {
+export function steeringCurve(value, deadzone = .025) {
   const magnitude = Math.min(1, Math.max(0, (Math.abs(value) - deadzone) / (1 - deadzone)));
-  return Math.sign(value) * magnitude ** 1.65;
-}
-
-function assistedAttitude(state, input, dt) {
-  attitude.setFromQuaternion(state.quaternion, 'YXZ');
-  const response = 1 - Math.exp(-8 * dt);
-  const pitchError = input.pitch * ASSIST.maxPitch - attitude.x;
-  const bankError = THREE.MathUtils.euclideanModulo(input.roll * ASSIST.maxBank - attitude.z + Math.PI, Math.PI * 2) - Math.PI;
-  // Hold an attitude to maneuver; release to settle level. Rate limits match the
-  // original aircraft. Speed and momentum remain in the shared physics below.
-  state.angular.x = THREE.MathUtils.lerp(state.angular.x, THREE.MathUtils.clamp(pitchError * 4.5, -1.05, 1.05), response);
-  state.angular.z = THREE.MathUtils.lerp(state.angular.z, THREE.MathUtils.clamp(bankError * 5.5, -1.65, 1.65), response);
-  state.angular.y = THREE.MathUtils.lerp(state.angular.y, input.yaw * .48, response);
-  attitude.x += state.angular.x * dt;
-  attitude.z += state.angular.z * dt;
-  attitude.y += (Math.sin(attitude.z) * .75 * Math.cos(attitude.x) + state.angular.y) * dt;
-  state.quaternion.setFromEuler(attitude).normalize();
+  return Math.sign(value) * magnitude ** 1.1;
 }
 
 export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
@@ -45,13 +27,12 @@ export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
 /** Local aircraft axes: +X right, +Y up, -Z nose. dt is capped/substepped by the game loop. */
 export function updateFlight(state, input, dt) {
   if (dt <= 0) return;
-  if (input.assist) {
-    assistedAttitude(state, input, dt);
-  } else {
-  const response = 1 - Math.exp(-7 * dt);
-  state.angular.x = THREE.MathUtils.lerp(state.angular.x, input.pitch * 1.05, response);
-  state.angular.z = THREE.MathUtils.lerp(state.angular.z, input.roll * 1.65, response);
-  state.angular.y = THREE.MathUtils.lerp(state.angular.y, input.yaw * 0.85, response);
+  // Direct angular-rate control, with no attitude limits or horizon correction.
+  // Centering the cursor stops rotation; it never rolls the wings back to level.
+  const response = 1 - Math.exp(-CONTROL.response * dt);
+  state.angular.x = THREE.MathUtils.lerp(state.angular.x, input.pitch * CONTROL.pitchRate, response);
+  state.angular.z = THREE.MathUtils.lerp(state.angular.z, input.roll * CONTROL.rollRate, response);
+  state.angular.y = THREE.MathUtils.lerp(state.angular.y, input.yaw * CONTROL.yawRate, response);
   state.quaternion.multiply(turn.setFromAxisAngle(X, state.angular.x * dt));
   state.quaternion.multiply(turn.setFromAxisAngle(Z, state.angular.z * dt));
   state.quaternion.multiply(turn.setFromAxisAngle(Y, state.angular.y * dt));
@@ -61,8 +42,6 @@ export function updateFlight(state, input, dt) {
   up.copy(Y).applyQuaternion(state.quaternion);
   const bankTurn = THREE.MathUtils.clamp(right.y, -1, 1) * 0.75 * Math.max(0, up.y);
   state.quaternion.premultiply(turn.setFromAxisAngle(Y, bankTurn * dt)).normalize();
-  }
-
   const targetSpeed = input.brake ? FLIGHT.minSpeed : input.boost ? FLIGHT.boostSpeed : FLIGHT.cruiseSpeed;
   state.speed = THREE.MathUtils.lerp(state.speed, targetSpeed, 1 - Math.exp(-1.8 * dt));
   state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed);

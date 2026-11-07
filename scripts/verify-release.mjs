@@ -27,10 +27,13 @@ async function worker() {
   }
 }
 await Promise.all(Array.from({length:4}, worker));
-await download('versions/v1/index.html');
+const retainedVersions = [];
+for (let version = 1; version < manifest.versionNumber; version++) {
+  await download(`versions/v${version}/index.html`); retainedVersions.push(`V${version}`);
+}
 await download('embed.html');
 const result = { version:manifest.version, release:manifest.assetVersion, url:base.href, verifiedAtUtc:new Date().toISOString(),
-  checksummedFiles:completed, rootHtmlMatches:true, retainedV1:true, embedAvailable:true };
+  checksummedFiles:completed, rootHtmlMatches:true, retainedVersions, embedAvailable:true };
 await mkdir(new URL('../artifacts/',import.meta.url),{recursive:true});
 await writeFile(new URL('../artifacts/public-release-verified.json',import.meta.url),JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));

@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
 
-**Current release: V2.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V3.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -32,14 +32,14 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 | Shift | Accelerate / afterburner |
 | Space | Brake **and** fire, matching both requested Space bindings |
 | Left mouse button (hold) | Fire without braking |
-| M or Mouse Flight button | Toggle mouse steering; cursor above center climbs, below dives, sideways rolls |
-| C or Flight Assist button | Toggle assistance (on by default); off enables full manual rolls/loops |
+| Mouse movement (default) | Cursor above/below center pitches; sideways rolls. Keep it off center for continuous maneuvers |
+| M or Cursor Steering button | Toggle cursor steering / keyboard-only flight |
 | Escape | Pause / resume; closes flight help first |
 | R | Restart mission |
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-The jet keeps a minimum airspeed. Flight Assist is on by default: W/S choose a climb/dive attitude and A/D bank into turns. Release the keys to level out smoothly. Assisted bank is limited to 48° and pitch to 32°. Mouse response is gentle near center for aiming. Turn assist off with C for the original manual rolls/loops. Speed, acceleration, braking and forward momentum keep the original physics. The reticle projects the actual gun direction from the chase camera. Four patrolling drones take three hits each and return fire. Furniture blocks shots. Collision damages the hull and redirects the plane; at zero hull, restart the mission. After winning, keep exploring or fly again. Switching away from the game automatically pauses it.
+Cursor steering is on by default. Move above/below center to pitch, or sideways to roll. Keep the cursor displaced to perform continuous barrel rolls and loops; return to center to stop rotating. The jet keeps its bank and pitch without automatically leveling. Controls are sharper, with unrestricted flight angles, a roughly 218°/second maximum roll rate, and an aircraft-following chase camera for vertical and inverted flight. W/S, A/D and Q/E still work, and M switches to keyboard-only flight. Speed, acceleration, braking, minimum airspeed and forward momentum preserve the original physics. The green cursor shows steering input; the gun reticle projects the actual firing direction. Four patrolling drones take three hits each and return fire. Furniture blocks shots. Collisions damage the hull. Switching away automatically pauses the game.
 
 ## Assets and scale
 
@@ -97,7 +97,7 @@ The repository uses GitHub Pages from `main` at the root. Existing website embed
 
 For every future release: increment `src/version.js`, add its concrete changes at the top of `CHANGELOG.md`, test the game, then run `node scripts/release.mjs`. Commit and push the new runtime folder, manifests, changelog and root page together. Never overwrite a published numbered folder. Verify Pages and the live version/checksums after publishing. `AGENTS.md` preserves these release requirements for future work.
 
-Run `node scripts/verify-release.mjs` after Pages finishes deploying to verify the public version, root HTML, every numbered runtime asset checksum, retained V1, and embed snippet. Publish a matching GitHub Release (`vN`) with the concrete changes as well as updating `CHANGELOG.md`.
+Run `node scripts/verify-release.mjs` after Pages finishes deploying to verify the public version, root HTML, every numbered runtime asset checksum, every prior retained release, and embed snippet. Publish a matching GitHub Release (`vN`) with the concrete changes as well as updating `CHANGELOG.md`.
 
 This folder is the complete static site. All runtime URLs are relative, including the FBX, so repository subpaths work.
 

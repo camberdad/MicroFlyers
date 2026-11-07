@@ -2,6 +2,17 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V3 — Cursor steering and unrestricted dogfighting
+
+- Make cursor steering active by default, with an on-screen steering cursor and separate gun reticle.
+- Sharpen pitch, roll and yaw response; full roll rate is approximately 218 degrees per second.
+- Remove Flight Assist, automatic leveling and pitch/bank limits entirely.
+- Enable continuous barrel rolls, vertical loops and inverted flight with direct quaternion controls.
+- Follow the aircraft through rolls and loops with a smooth quaternion chase camera.
+- Keep the existing cruise speed, boost/brake behavior, minimum airspeed and forward momentum.
+- Preserve keyboard controls and an M toggle for keyboard-only flying.
+- Publish V3 with live updates, change notes and a retained numbered runtime.
+
 ## V2 — Assisted flight, versioned releases and live updates
 
 - Make Flight Assist the default: smooth banking and climbing with automatic leveling when controls are released.

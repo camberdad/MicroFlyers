@@ -2,6 +2,8 @@
 
 The user requested that every new game version be numbered, shown on screen, published to GitHub with its changes, and delivered to existing website embeds through live updates.
 
+Flight direction: cursor steering is the default. Keep sharp direct controls, unrestricted barrel rolls/loops/inverted flight, and no automatic balance or self-leveling mode. Preserve the existing speed and momentum physics unless the user requests a change.
+
 - Stable repository: `https://github.com/camberdad/MicroFlyers`.
 - Stable game/embed URL: `https://camberdad.github.io/MicroFlyers/`.
 - Publish branch `main`, repository root, using GitHub Pages.

@@ -1,25 +1,20 @@
 {
-  "version": "V2",
-  "versionNumber": 2,
-  "assetVersion": "v2-94802aaecdec",
-  "publishedAtUtc": "2026-11-07T04:03:25.182Z",
+  "version": "V3",
+  "versionNumber": 3,
+  "assetVersion": "v3-e049427ac551",
+  "publishedAtUtc": "2026-11-07T04:17:31.884Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v2/",
-  "description": "Assisted flight, versioned releases and live updates",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v3/",
+  "description": "Cursor steering and unrestricted dogfighting",
   "changes": [
-    "Make Flight Assist the default: smooth banking and climbing with automatic leveling when controls are released.",
-    "Limit assisted bank to 48° and pitch to 32° for predictable indoor turns and aiming.",
-    "Add a precision mouse response curve and a Flight Assist toggle (C) for manual aerobatics.",
-    "Preserve the original forward speed, acceleration, braking, minimum airspeed and momentum physics.",
-    "Publish MicroFlyers on GitHub Pages with a permanent website/embed URL.",
-    "Show the running version and live update status in the game's header.",
-    "Check for new versions every 30 seconds and when the browser regains focus.",
-    "Notify pilots about an available update without interrupting a flight.",
-    "Add Return to Hangar from pause and mission results; apply pending updates from the hangar.",
-    "Show update progress, completion, and a retry option if a stale page or connection prevents updating.",
-    "Load each release's scripts, styles, dependencies, and model from its numbered folder so browser caches cannot mix versions.",
-    "Preserve the original V1 and the complete V2 under `versions/v1/` and `versions/v2/`.",
-    "Record release metadata, asset checksums, and changes in GitHub; document the same process for future versions."
+    "Make cursor steering active by default, with an on-screen steering cursor and separate gun reticle.",
+    "Sharpen pitch, roll and yaw response; full roll rate is approximately 218 degrees per second.",
+    "Remove Flight Assist, automatic leveling and pitch/bank limits entirely.",
+    "Enable continuous barrel rolls, vertical loops and inverted flight with direct quaternion controls.",
+    "Follow the aircraft through rolls and loops with a smooth quaternion chase camera.",
+    "Keep the existing cruise speed, boost/brake behavior, minimum airspeed and forward momentum.",
+    "Preserve keyboard controls and an M toggle for keyboard-only flying.",
+    "Publish V3 with live updates, change notes and a retained numbered runtime."
   ],
   "files": [
     {
@@ -44,8 +39,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 8704,
-      "sha256": "8f9637288b9753acbff9c9d07a28154d1aac3f37fd330747f30eb0dc133aa1bd"
+      "bytes": 8837,
+      "sha256": "8a310f595fa1e122d3bc07c2cee29508a6550d1c6396a3b8844b6eb84a0c9325"
     },
     {
       "path": "src/aircraft.js",
@@ -64,13 +59,13 @@
     },
     {
       "path": "src/flight.js",
-      "bytes": 4892,
-      "sha256": "ada73ec7d38cdac8a75c4f57c50c7c62a22ad7252663605465f8c3fca8a6ff7e"
+      "bytes": 3903,
+      "sha256": "e1de4f14d4e1799e55a1c1a6e64b2ad33985d13b02bfad29f043dc28b41083da"
     },
     {
       "path": "src/main.js",
-      "bytes": 19301,
-      "sha256": "b9f56005d86b07a3d827e35cce77b53dcc7c6cc9f75e03f947ab39a90a0c9cc4"
+      "bytes": 19732,
+      "sha256": "45d1346bd07792dd26d94cd059114966cc531eced7092fb99078892af9f0b6e6"
     },
     {
       "path": "src/ui.js",
@@ -90,7 +85,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "345178d20c7d4bf4c8787b141aba3e09341b24788b00219835948676580397b5"
+      "sha256": "434d6808ae1a0f7cfb4d8956e9b292cf7fe880ce7b34173c328903d150e483f4"
     },
     {
       "path": "src/world.js",
@@ -99,8 +94,8 @@
     },
     {
       "path": "styles.css",
-      "bytes": 13392,
-      "sha256": "349671b65105b11b5968b4348eab50331882d198726cb58019c83d96c3e2a389"
+      "bytes": 13750,
+      "sha256": "f653fb530c0176ab684c3bfce53dc62962121531188e753433dd620bbe99ceb5"
     },
     {
       "path": "vendor/three/LICENSE",
