@@ -1,0 +1,12 @@
+{
+  "name": "microflyers",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Miniature jet dogfights inside a massive living room, powered by Three.js.",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "test": "node --import ./scripts/three-node.mjs --test tests/*.test.mjs",
+    "vendor": "node scripts/vendor.mjs"
+  }
+}

@@ -1,0 +1,26 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import * as THREE from '../vendor/three/build/three.module.js';
+import { FBXLoader } from '../vendor/three/examples/jsm/loaders/FBXLoader.js';
+import { isSafePosition } from '../src/world.js';
+
+test('the actual supplied FBX parses, normalizes, and has a clear launch position', async () => {
+  globalThis.window = { innerWidth: 1100, innerHeight: 800 };
+  const manager = new THREE.LoadingManager();
+  manager.addHandler(/.*/, { load: () => new THREE.Texture(), setPath() {}, setResourcePath() {} });
+  const buffer = await readFile(new URL('../assets/InteriorTest.fbx', import.meta.url));
+  const model = new FBXLoader(manager).parse(buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength), '');
+  const discard = []; model.traverse(o => { if (o.isCamera || o.isLight) discard.push(o); }); discard.forEach(o => o.removeFromParent());
+  model.updateMatrixWorld(true);
+  const original = new THREE.Box3().setFromObject(model), size = original.getSize(new THREE.Vector3()), center = original.getCenter(new THREE.Vector3());
+  const scale = 120 / Math.max(size.x, size.z);
+  model.scale.setScalar(scale); model.position.set(-center.x * scale, -original.min.y * scale, -center.z * scale); model.updateMatrixWorld(true);
+  const colliders = []; model.traverse(o => { if (o.isMesh) colliders.push({ box: new THREE.Box3().setFromObject(o).expandByScalar(.025) }); });
+  const world = { colliders, bounds: new THREE.Box3(new THREE.Vector3((-249-center.x)*scale,.25,(-399-center.z)*scale),new THREE.Vector3((249-center.x)*scale,298*scale,(399-center.z)*scale)) };
+  assert.equal(colliders.length, 231);
+  assert.ok(Math.abs(new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).z - 120) < .01);
+  assert.ok(isSafePosition(world, new THREE.Vector3(-10, 16, 42)));
+  assert.ok(!isSafePosition(world, new THREE.Vector3(0, -.1, 0)));
+  assert.ok(!isSafePosition(world, new THREE.Vector3(1000, 20, 0)));
+});

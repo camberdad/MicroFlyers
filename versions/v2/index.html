@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101b26">
+  <meta name="description" content="Small jet. Big room. Fly, explore, and dogfight in MicroFlyers, a miniature browser flight game.">
+  <title>MicroFlyers V2 — Small jet. Big room.</title>
+  <link rel="icon" href="./assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <!-- Pinned local copies make GitHub Pages and embedded builds independent of a CDN.
+       Equivalent CDN import map (keep every Three.js URL on the SAME version):
+       "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
+       "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+       FBXLoader: https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/loaders/FBXLoader.js
+       FFlate: https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/libs/fflate.module.js
+       FBXLoader imports FFlate itself; do not load a separate global script.
+  -->
+  <script type="importmap">
+    {"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/examples/jsm/"}}
+  </script>
+</head>
+<body>
+  <main id="app">
+    <div id="scene" aria-label="Three-dimensional living room airfield"></div>
+    <div class="vignette" aria-hidden="true"></div>
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="MicroFlyers home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="m20 3 5 14 12 9-1 3-13-4-1 9 5 4H13l5-4-1-9-13 4-1-3 12-9Z"/></svg><span>MICRO<span class="brand-light">FLYERS</span><small>SMALL JET. BIG ROOM.</small></span></a>
+      <div class="location"><span class="live-dot"></span> THE LIVING ROOM <span class="tag">AIRFIELD 01</span></div>
+      <nav aria-label="Game settings">
+        <div class="version-badge" aria-label="Game version and update status"><strong id="version-label">V2</strong><span id="update-status" title="Checking for updates">LIVE</span></div>
+        <button id="sound-button" class="icon-button" aria-label="Enable sound" title="Sound">♪<span id="sound-label">OFF</span></button>
+        <button id="help-button" class="icon-button" aria-label="Show flight controls" title="Flight controls">?</button>
+        <button id="fullscreen-button" class="icon-button fullscreen" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
+      </nav>
+    </header>
+
+    <section id="intro" class="intro">
+      <div class="eyebrow"><span></span> YOUR ROOM. YOUR AIRSPACE.</div>
+      <h1>A little jet.<br>A whole new<br><em>perspective.</em></h1>
+      <p>Skim the sofa. Bank around the bookshelf.<br>Turn the living room into your playground.</p>
+      <button id="launch-button" class="primary-button" disabled><span id="launch-label">Preparing airfield</span><span aria-hidden="true">↗</span></button>
+      <div class="load-state"><span id="load-dot" class="live-dot"></span><span id="load-label" role="status">Loading InteriorTest.fbx…</span></div>
+      <div class="intro-controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> TO FLY</span><span><svg viewBox="0 0 16 20" aria-hidden="true"><rect x="3" y="1" width="10" height="17" rx="5"/><path d="M8 2v6M3 8h10"/></svg> CLICK TO FIRE</span></div>
+    </section>
+
+    <div id="scene-caption" class="scene-caption"><span class="caption-cross">+</span><div>THE EVERYDAY, REIMAGINED<small>1:60 SCALE · UNLIMITED POSSIBILITIES</small></div></div>
+    <div class="bottom-left" id="intro-footer"><span class="outlined-label">BROWSER FLIGHT SIM</span><span>NO DOWNLOAD. JUST TAKE OFF.</span></div>
+    <div class="bottom-right" id="room-label"><span class="live-dot"></span> INTERIORTEST <span class="muted">/</span> FREE FLIGHT + DOGFIGHT</div>
+
+    <section id="hud" class="hud hidden" aria-label="Flight instruments">
+      <div class="mission"><span class="eyebrow">OPERATION SMALL WORLD</span><strong id="mission-label">Clear the airspace</strong><span id="mission-detail">Track and eliminate 4 rogue drones</span><div class="mission-progress" id="mission-progress"><i></i><i></i><i></i><i></i></div></div>
+      <div class="combat-stats"><div><span>ELIMINATIONS</span><strong><b id="kills">00</b><small> / 04</small></strong></div><div><span>FLIGHT TIME</span><strong id="timer">00:00</strong></div></div>
+      <div id="target-marker" class="target-marker hidden"><span id="target-distance">DRONE</span></div>
+      <div id="reticle" class="reticle"><i></i><i></i><i></i><i></i><span></span></div>
+      <div id="hit-marker" class="hit-marker hidden">×</div>
+      <div id="notification" class="notification" role="status"></div>
+      <div class="telemetry"><div class="speed"><span>AIRSPEED</span><strong id="speed">000</strong><small>CM / S</small><div class="speed-track"><i id="speed-bar"></i></div></div><div class="altitude"><span>ALTITUDE</span><strong id="altitude">0.0<small> M</small></strong><span id="flight-mode">CRUISE</span></div></div>
+      <div class="hull"><span>AIRFRAME <strong id="health-label">100%</strong></span><div><i id="health-bar"></i></div><small id="hull-detail">SYSTEMS NOMINAL</small></div>
+      <div class="radar-wrap"><canvas id="radar" width="240" height="240" aria-label="Radar showing nearby drones"></canvas><span>LOCAL AIRSPACE</span></div>
+      <div class="flight-toolbar"><span><kbd>SHIFT</kbd> BOOST</span><span><kbd>SPACE</kbd> BRAKE + FIRE</span><button id="mouse-button">MOUSE FLIGHT <b>OFF</b></button><button id="assist-button" aria-pressed="true">FLIGHT ASSIST <b>ON</b></button><button id="pause-button"><kbd>ESC</kbd> PAUSE</button></div>
+    </section>
+
+    <section id="pause-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title">
+      <div class="panel"><span class="eyebrow">TAKE A BREATHER</span><h2 id="pause-title">Flight paused.</h2><p>Your airspace will be right here.</p><button id="resume-button" class="primary-button">Resume flight <span>↗</span></button><button id="restart-button" class="secondary-button">Restart mission</button><button id="hangar-button" class="secondary-button">Return to hangar</button></div>
+    </section>
+    <section id="result-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="result-title">
+      <div class="panel"><span id="result-eyebrow" class="eyebrow">MISSION COMPLETE</span><h2 id="result-title">Airspace secured.</h2><p id="result-detail">All four drones eliminated.</p><button id="again-button" class="primary-button">Fly again <span>↗</span></button><button id="explore-button" class="secondary-button">Keep exploring</button><button id="result-hangar-button" class="secondary-button">Return to hangar</button></div>
+    </section>
+    <section id="help-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
+      <div class="panel help-panel"><button id="close-help" class="close-button" aria-label="Close flight controls">×</button><span class="eyebrow">FLIGHT SCHOOL / 01</span><h2 id="help-title">Make yourself<br>at home.</h2><p>Flight Assist is on. Hold a key to climb or bank.<br>Release it and your jet smoothly levels out.</p><dl><div><dt><kbd>W</kbd> / <kbd>S</kbd></dt><dd>Climb / dive</dd></div><div><dt><kbd>A</kbd> / <kbd>D</kbd></dt><dd>Bank and turn left / right</dd></div><div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Fine yaw left / right</dd></div><div><dt><kbd>SHIFT</kbd></dt><dd>Afterburner</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Airbrake + fire</dd></div><div><dt><kbd>LEFT CLICK</kbd></dt><dd>Fire without braking</dd></div><div><dt><kbd>M</kbd> / <kbd>C</kbd></dt><dd>Mouse flight / flight assist</dd></div><div><dt><kbd>ESC</kbd></dt><dd>Pause / return to hangar</dd></div></dl><p class="fine-print">Mouse flight: small movements near center give fine steering; move farther for a stronger turn. Keyboard controls stay active. Turn Flight Assist off for manual rolls and loops. R restarts, F opens fullscreen, and V toggles sound.</p><button id="help-done" class="primary-button">Got it <span>↗</span></button></div>
+    </section>
+    <aside id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span id="update-message"></span><button id="update-action" class="hidden"></button><div id="update-progress" class="hidden"><i></i></div></aside>
+    <div id="damage-flash" class="damage-flash" aria-hidden="true"></div>
+    <noscript><div class="fatal-error">MicroFlyers needs JavaScript and a WebGL 2 capable browser.</div></noscript>
+  </main>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+{
+  "version": "V2",
+  "versionNumber": 2,
+  "assetVersion": "v2-94802aaecdec",
+  "publishedAtUtc": "2026-11-07T04:03:25.182Z",
+  "gameUrl": "https://camberdad.github.io/MicroFlyers/versions/v2/",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v2/",
+  "description": "Assisted flight, versioned releases and live updates",
+  "changes": [
+    "Make Flight Assist the default: smooth banking and climbing with automatic leveling when controls are released.",
+    "Limit assisted bank to 48° and pitch to 32° for predictable indoor turns and aiming.",
+    "Add a precision mouse response curve and a Flight Assist toggle (C) for manual aerobatics.",
+    "Preserve the original forward speed, acceleration, braking, minimum airspeed and momentum physics.",
+    "Publish MicroFlyers on GitHub Pages with a permanent website/embed URL.",
+    "Show the running version and live update status in the game's header.",
+    "Check for new versions every 30 seconds and when the browser regains focus.",
+    "Notify pilots about an available update without interrupting a flight.",
+    "Add Return to Hangar from pause and mission results; apply pending updates from the hangar.",
+    "Show update progress, completion, and a retry option if a stale page or connection prevents updating.",
+    "Load each release's scripts, styles, dependencies, and model from its numbered folder so browser caches cannot mix versions.",
+    "Preserve the original V1 and the complete V2 under `versions/v1/` and `versions/v2/`.",
+    "Record release metadata, asset checksums, and changes in GitHub; document the same process for future versions."
+  ],
+  "files": [
+    {
+      "path": ".nojekyll",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/InteriorTest.fbx",
+      "bytes": 1384188,
+      "sha256": "383a2269f797231bd38d5ab04d1bab685c0526b43b2cb920442d91b85bd96359"
+    },
+    {
+      "path": "assets/favicon.svg",
+      "bytes": 205,
+      "sha256": "e93e179c557b2f66492916cbb9e46db71ba590e9c40daa528f4f7f981fc03eba"
+    },
+    {
+      "path": "assets/model-inspection.json",
+      "bytes": 95781,
+      "sha256": "150c8041e1eaf321990a3f9031520884152381a2ff92b77ba326093ab25adbb7"
+    },
+    {
+      "path": "index.html",
+      "bytes": 8704,
+      "sha256": "8f9637288b9753acbff9c9d07a28154d1aac3f37fd330747f30eb0dc133aa1bd"
+    },
+    {
+      "path": "src/aircraft.js",
+      "bytes": 3190,
+      "sha256": "5ba90bbe470da1daf860ed03b84bddff556cef511f9bf6d798d0e671da71fbb3"
+    },
+    {
+      "path": "src/audio.js",
+      "bytes": 2139,
+      "sha256": "35f73074dac7a76809a9d7bab9cb26b6eb326b83dd03f02faa75408973d53b29"
+    },
+    {
+      "path": "src/combat.js",
+      "bytes": 8032,
+      "sha256": "a8298da2e56b53ff6bb46987fef17d9c6bdc03dfe1e52efa282126ef214ab509"
+    },
+    {
+      "path": "src/flight.js",
+      "bytes": 4892,
+      "sha256": "ada73ec7d38cdac8a75c4f57c50c7c62a22ad7252663605465f8c3fca8a6ff7e"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 19301,
+      "sha256": "b9f56005d86b07a3d827e35cce77b53dcc7c6cc9f75e03f947ab39a90a0c9cc4"
+    },
+    {
+      "path": "src/ui.js",
+      "bytes": 4836,
+      "sha256": "e22734d6fc4d7f7f88591169f5f0a8ddb98b8361867fad024cdca2b9cdd3e88c"
+    },
+    {
+      "path": "src/update-policy.js",
+      "bytes": 470,
+      "sha256": "35e4d61be98ee8704b5b079f281c880c122aed2a7c80128035f106eddc4a1733"
+    },
+    {
+      "path": "src/updates.js",
+      "bytes": 5223,
+      "sha256": "8071b57a34571512027a6c5319f8d0a3db8ec94606f0343915ab3127b6d9116a"
+    },
+    {
+      "path": "src/version.js",
+      "bytes": 134,
+      "sha256": "345178d20c7d4bf4c8787b141aba3e09341b24788b00219835948676580397b5"
+    },
+    {
+      "path": "src/world.js",
+      "bytes": 8985,
+      "sha256": "88f3b43e590c3867c471d8cf2864a331c60a3b74f987c18b5896fc220fe77d1e"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 13392,
+      "sha256": "349671b65105b11b5968b4348eab50331882d198726cb58019c83d96c3e2a389"
+    },
+    {
+      "path": "vendor/three/LICENSE",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "path": "vendor/three/build/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "path": "vendor/three/build/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSCurve.js",
+      "bytes": 3888,
+      "sha256": "bef2607618a7778455e71a1f0bd206951c382d313e2e245808cc7d3533d60fb6"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSUtils.js",
+      "bytes": 10802,
+      "sha256": "c6bd7c4137d585098923f189687898ea3e8762ea3ecbe255d749a56353894379"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.LICENSE",
+      "bytes": 1069,
+      "sha256": "805f6cb28bb8b6d3a0badd83c93bccd9671fa01a3b4b92b7042b0743325ac243"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.module.js",
+      "bytes": 89384,
+      "sha256": "209a4412eb48ce609edb4391992a792ffcc3983d30ee7e2b0b89a8c470f3cd8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/loaders/FBXLoader.js",
+      "bytes": 104876,
+      "sha256": "d97724a6bea228003e02c64651d969a9a62003a00be314ef6995c390116f547d"
+    },
+    {
+      "path": "vendor/three/examples/jsm/math/OBB.js",
+      "bytes": 13862,
+      "sha256": "3297db79bdf0a33525ef06fe7478fd921dcffb7699df1059e189bbdf2c0fae58"
+    }
+  ],
+  "currentGameUrl": "https://camberdad.github.io/MicroFlyers/"
+}
