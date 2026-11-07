@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101b26">
   <meta name="description" content="Small jet. Big room. Fly, explore, and dogfight in MicroFlyers, a miniature browser flight game.">
-  <title>MicroFlyers V10 — Small jet. Big room.</title>
-  <link rel="icon" href="./versions/v10/assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./versions/v10/styles.css">
-  <link rel="stylesheet" href="./versions/v10/src/hud.css">
+  <title>MicroFlyers V11 — Small jet. Big room.</title>
+  <link rel="icon" href="./versions/v11/assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./versions/v11/styles.css">
+  <link rel="stylesheet" href="./versions/v11/src/hud.css">
   <!-- Pinned local copies make GitHub Pages and embedded builds independent of a CDN.
        Equivalent CDN import map (keep every Three.js URL on the SAME version):
        "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"
@@ -18,7 +18,7 @@
        FBXLoader imports FFlate itself; do not load a separate global script.
   -->
   <script type="importmap">
-    {"imports":{"three":"./versions/v10/vendor/three/build/three.module.js","three/addons/":"./versions/v10/vendor/three/examples/jsm/"}}
+    {"imports":{"three":"./versions/v11/vendor/three/build/three.module.js","three/addons/":"./versions/v11/vendor/three/examples/jsm/"}}
   </script>
 </head>
 <body>
@@ -29,7 +29,7 @@
       <a class="brand" href="./" aria-label="MicroFlyers home"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="m20 3 5 14 12 9-1 3-13-4-1 9 5 4H13l5-4-1-9-13 4-1-3 12-9Z"/></svg><span>MICRO<span class="brand-light">FLYERS</span><small>SMALL JET. BIG ROOM.</small></span></a>
       <div class="location"><span class="live-dot"></span> <span id="location-name">THE LIVING ROOM</span> <span id="airfield-number" class="tag">AIRFIELD 01</span></div>
       <nav aria-label="Game settings">
-        <div class="version-badge" aria-label="Game version and update status"><strong id="version-label">V10</strong><span id="update-status" title="Checking for updates">LIVE</span></div>
+        <div class="version-badge" aria-label="Game version and update status"><strong id="version-label">V11</strong><span id="update-status" title="Checking for updates">LIVE</span></div>
         <button id="sound-button" class="icon-button" aria-label="Enable sound" title="Sound">♪<span id="sound-label">OFF</span></button>
         <button id="help-button" class="icon-button" aria-label="Show flight controls" title="Flight controls">?</button>
         <button id="fullscreen-button" class="icon-button fullscreen" aria-label="Enter fullscreen" title="Fullscreen">⛶</button>
@@ -40,13 +40,13 @@
     <section id="intro" class="intro">
       <div class="eyebrow"><span></span> YOUR ROOM. YOUR AIRSPACE.</div>
       <h1>Small jet.<br><em>Big possibilities.</em></h1><div class="mode-picker" aria-label="Flight mode"><button id="free-mode" aria-pressed="true"><strong>Free Fly</strong><small>Explore · no enemies</small></button><button id="career-mode" aria-pressed="false"><strong>Career</strong><small>30 rounds · earn GP</small></button></div>
-      <p id="intro-description">Skim the sofa. Bank around the bookshelf. Turn the room into your playground.</p><div class="map-picker"><label for="map-select">CHOOSE YOUR AIRFIELD</label><select id="map-select" disabled><option value="living">01 · The Living Room</option><option value="dining">02 · The Dining Room</option></select><small>1:100 MICRO JET · NO SCENERY DAMAGE</small></div>
+      <p id="intro-description">Skim the sofa. Bank around the bookshelf. Turn the room into your playground.</p><div class="map-picker"><label for="map-select">CHOOSE YOUR AIRFIELD</label><select id="map-select" disabled><option value="living">01 · The Living Room</option><option value="dining">02 · The Dining Room</option></select><small>1:200 MICRO JET · NO SCENERY DAMAGE</small></div>
       <div id="career-brief" class="career-brief hidden"><div><strong id="career-progress">ROUND 1 / 30</strong><span id="career-levels">Shots 0/5 · Armor 0/5</span></div><strong id="hangar-gp">0 GP</strong></div><div class="launch-actions"><button id="launch-button" class="primary-button" disabled><span id="launch-label">Preparing airfield</span><span aria-hidden="true">↗</span></button>
       <button id="shop-button" class="hangar-shop">Upgrade hangar <span>↗</span></button></div><p id="save-note" class="save-note">Career auto-saves in this browser.</p><div class="load-state"><span id="load-dot" class="live-dot"></span><span id="load-label" role="status">Loading InteriorTest.fbx…</span></div>
       <div class="intro-controls"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> TO FLY</span><span>LEFT CLICK · GUN<br>RIGHT CLICK · MISSILE</span></div>
     </section>
 
-    <div id="scene-caption" class="scene-caption"><span class="caption-cross">+</span><div>THE EVERYDAY, REIMAGINED<small>1:100 SCALE · UNLIMITED POSSIBILITIES</small></div></div>
+    <div id="scene-caption" class="scene-caption"><span class="caption-cross">+</span><div>THE EVERYDAY, REIMAGINED<small>1:200 SCALE · UNLIMITED POSSIBILITIES</small></div></div>
     <div class="bottom-left" id="intro-footer"><span class="outlined-label">BROWSER FLIGHT SIM</span><span>NO DOWNLOAD. JUST TAKE OFF.</span></div>
     <div class="bottom-right" id="room-label"><span class="live-dot"></span> INTERIORTEST <span class="muted">/</span> FREE FLIGHT + DOGFIGHT</div>
 
@@ -76,12 +76,12 @@
       <div class="panel upgrade-panel"><button id="close-shop" class="close-button" aria-label="Close upgrade hangar">×</button><span class="eyebrow">SPEND GP · BUILD YOUR AIRFRAME</span><h2 id="shop-title">Upgrade hangar.</h2><div class="shop-wallet"><strong id="shop-gp">0 GP</strong><span>Earned per career kill · no real money</span></div><div class="upgrade-grid"><article><span class="upgrade-icon">↗</span><h3>Shots</h3><span id="shots-level" class="upgrade-level">LEVEL 0 / 5</span><p>Stronger gunfire, faster firing and more powerful missiles.</p><p id="shots-detail"></p><small id="shots-cost"></small><button id="buy-shots" class="secondary-button">Upgrade shots</button></article><article><span class="upgrade-icon">◇</span><h3>Plane armor</h3><span id="armor-level" class="upgrade-level">LEVEL 0 / 5</span><p>A tougher hull to survive later waves. Each level adds 30 hull points.</p><p id="armor-detail"></p><small id="armor-cost"></small><button id="buy-armor" class="secondary-button">Upgrade armor</button></article></div><p id="shop-feedback" role="status">Upgrades apply at your next launch. Full repairs between waves.</p><p id="shop-save" class="fine-print"></p><button id="shop-done" class="primary-button">Back to sortie <span>↗</span></button></div>
     </section>
     <section id="help-panel" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="help-title">
-      <div class="panel help-panel"><button id="close-help" class="close-button" aria-label="Close flight controls">×</button><span class="eyebrow">FLIGHT SCHOOL / 01</span><h2 id="help-title">Point into<br>the dogfight.</h2><p>A/D turns directly. Release to level the wings.<br>Tap W/S to adjust pitch; release to hold it.</p><dl><div><dt><kbd>W</kbd> / <kbd>S</kbd></dt><dd>Climb / dive in Beginner pitch</dd></div><div><dt><kbd>A</kbd> / <kbd>D</kbd></dt><dd>Turn left / right</dd></div><div><dt><kbd>↑ ↓ ← →</kbd></dt><dd>Alternative flight controls</dd></div><div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Fine rudder adjustments</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Raise throttle / afterburner</dd></div><div><dt><kbd>SHIFT</kbd></dt><dd>Lower throttle + airbrake</dd></div><div><dt><kbd>WHEEL</kbd></dt><dd>Fine throttle up / down</dd></div><div><dt><kbd>LEFT</kbd> / <kbd>RIGHT CLICK</kbd></dt><dd>Gun / homing missile</dd></div></dl><div class="flight-settings"><label for="pitch-style">Pitch style<select id="pitch-style"><option value="beginner">Beginner · W climbs</option><option value="flight">Flight style · S climbs</option></select></label><label for="flight-sensitivity">Sensitivity <output id="sensitivity-value">1.00</output><input id="flight-sensitivity" type="range" min="0.5" max="1.5" step="0.05" value="1"></label></div><p class="fine-print">Throttle stays where you set it after releasing Space/Shift. Face a drone until locked, then right-click for a homing missile. Mouse movement never steers. The 1:100 jet uses a small central collision core. Scenery and drone contact cause no damage; hostile shots still do. Choose Free Fly for peaceful exploration, or Career for 30 rounds of enemy-plane waves. Kills earn GP; spend it on shots and armor in the upgrade hangar. Career starts scatter all aircraft with random headings and safe separation. Find enemies on radar; they must face you to fire from their noses. Career progress saves in this browser, including earned GP after a defeat. Full repairs between waves. Change maps in the hangar. Esc pauses, R restarts, F opens fullscreen, and V toggles sound.</p><button id="help-done" class="primary-button">Got it <span>↗</span></button></div>
+      <div class="panel help-panel"><button id="close-help" class="close-button" aria-label="Close flight controls">×</button><span class="eyebrow">FLIGHT SCHOOL / 01</span><h2 id="help-title">Point into<br>the dogfight.</h2><p>A/D turns directly. Release to level the wings.<br>Tap W/S to adjust pitch; release to hold it.</p><dl><div><dt><kbd>W</kbd> / <kbd>S</kbd></dt><dd>Climb / dive in Beginner pitch</dd></div><div><dt><kbd>A</kbd> / <kbd>D</kbd></dt><dd>Turn left / right</dd></div><div><dt><kbd>↑ ↓ ← →</kbd></dt><dd>Alternative flight controls</dd></div><div><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Fine rudder adjustments</dd></div><div><dt><kbd>SPACE</kbd></dt><dd>Raise throttle / afterburner</dd></div><div><dt><kbd>SHIFT</kbd></dt><dd>Lower throttle + airbrake</dd></div><div><dt><kbd>WHEEL</kbd></dt><dd>Fine throttle up / down</dd></div><div><dt><kbd>LEFT</kbd> / <kbd>RIGHT CLICK</kbd></dt><dd>Gun / homing missile</dd></div></dl><div class="flight-settings"><label for="pitch-style">Pitch style<select id="pitch-style"><option value="beginner">Beginner · W climbs</option><option value="flight">Flight style · S climbs</option></select></label><label for="flight-sensitivity">Sensitivity <output id="sensitivity-value">1.00</output><input id="flight-sensitivity" type="range" min="0.5" max="1.5" step="0.05" value="1"></label></div><p class="fine-print">Throttle stays where you set it after releasing Space/Shift. Face a drone until locked, then right-click for a homing missile. Mouse movement never steers. The 1:200 jet uses a small central collision core. Scenery and drone contact cause no damage; hostile shots still do. Choose Free Fly for peaceful exploration, or Career for 30 rounds of enemy-plane waves. Kills earn GP; spend it on shots and armor in the upgrade hangar. Career starts scatter all aircraft with random headings and safe separation. Find enemies on radar; they must face you to fire from their noses. Career progress saves in this browser, including earned GP after a defeat. Full repairs between waves. Change maps in the hangar. Esc pauses, R restarts, F opens fullscreen, and V toggles sound.</p><button id="help-done" class="primary-button">Got it <span>↗</span></button></div>
     </section>
     <aside id="update-notice" class="update-notice hidden" role="status" aria-live="polite"><span id="update-message"></span><button id="update-action" class="hidden"></button><div id="update-progress" class="hidden"><i></i></div></aside>
     <div id="damage-flash" class="damage-flash" aria-hidden="true"></div>
     <noscript><div class="fatal-error">MicroFlyers needs JavaScript and a WebGL 2 capable browser.</div></noscript>
   </main>
-  <script type="module" src="./versions/v10/src/main.js"></script>
+  <script type="module" src="./versions/v11/src/main.js"></script>
 </body>
 </html>

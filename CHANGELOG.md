@@ -2,6 +2,14 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V11 — Slower flight and half-size player jet
+
+- Reduce player cruise, minimum and afterburner speeds by 30%: 5.95, 3.15 and 13.3 world units/second respectively, in both Career and Free Fly.
+- Halve the player's length, wingspan and height relative to V10, changing the miniature design scale from 1:100 to 1:200 (JET_SCALE 0.204).
+- Halve the player's central collision radius to 0.065 and resize player projectiles, missiles and nose launch offsets to match.
+- Keep the existing chase-camera distance so the smaller aircraft remains visibly half-size; update scale labels and the airspeed meter's maximum.
+- Preserve steering, held throttle, momentum response, both maps, randomized career starts, forward-only enemy guns, GP/upgrades, saves and live updates.
+
 ## V10 — Randomized wave starts and forward-only enemy guns
 
 - Randomize the player's and every enemy's career starting position and heading at each wave launch or retry, on both maps.

@@ -10,12 +10,12 @@ function fly(state, input, seconds, step = 1 / 120) {
 
 test('neutral flight maintains cruise speed and travels along the nose', () => {
   const state = createFlightState(new THREE.Vector3()); fly(state, neutral, 10);
-  assert.ok(Math.abs(state.position.z + 85) < .001);
+  assert.ok(Math.abs(state.position.z + 59.5) < .001);
   assert.equal(state.position.y, 0); assert.equal(state.position.x, 0);
 });
 test('afterburner accelerates; prolonged braking preserves minimum airspeed', () => {
   const state = createFlightState(); fly(state, { ...neutral, boost: true }, 12);
-  assert.ok(state.speed > 18.99 && state.speed <= FLIGHT.boostSpeed);
+  assert.ok(state.speed > 13.29 && state.speed <= FLIGHT.boostSpeed);
   fly(state, { ...neutral, brake: true, boost: true }, 20);
   assert.ok(state.speed >= FLIGHT.minSpeed && state.speed < FLIGHT.minSpeed + .001);
   assert.ok(state.velocity.length() >= FLIGHT.minSpeed - 1e-9);
@@ -102,7 +102,7 @@ test('throttle holds on release and the engine spools toward the selected speed'
   assert.ok(Math.abs(state.throttle-.85) < 1e-9);
   fly(state,neutral,3);
   assert.ok(Math.abs(state.throttle-.85) < 1e-9);
-  assert.ok(state.speed > 15 && state.speed < throttleToSpeed(.85));
+  assert.ok(state.speed > 10.5 && state.speed < throttleToSpeed(.85));
   fly(state,{...neutral,brake:true},.25);
   assert.ok(Math.abs(state.throttle-.65) < 1e-9);
   const brakedSpeed = state.speed;

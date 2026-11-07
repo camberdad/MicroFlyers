@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V10.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V11.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -51,7 +51,7 @@ Clearing a wave saves the next wave/round. Defeat, restarting or returning to th
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-V7 recreates the core behavior of [Toyborne's Arrow controls](https://www.breyes.net/toyborne/en/), independently implemented at the room's scale. Heading responds directly to A/D instead of waiting for bank to build; the aircraft banks into the turn and levels its wings on release. Pitch holds after releasing W/S, with a ±78° limit. Flight controls offers Beginner pitch (default W climbs / S dives), Flight style (S climbs / W dives), and saved sensitivity. Mouse movement never steers. Space raises a persistent throttle lever, Shift lowers it and applies an airbrake, and the wheel adjusts it in 4% steps. Throttle stays where it was on release; engine power spools smoothly. Cruise remains 8.5 world units/s, with the existing 4.5–19 speed range and momentum. Left click fires the gun; Space is now exclusively throttle. The chase camera and V6 HUD remain. This adapts the reference's easy flight mode rather than its optional 360-roll or mouse modes; no Toyborne source or assets are distributed.
+V7 recreates the core behavior of [Toyborne's Arrow controls](https://www.breyes.net/toyborne/en/), independently implemented at the room's scale. Heading responds directly to A/D instead of waiting for bank to build; the aircraft banks into the turn and levels its wings on release. Pitch holds after releasing W/S, with a ±78° limit. Flight controls offers Beginner pitch (default W climbs / S dives), Flight style (S climbs / W dives), and saved sensitivity. Mouse movement never steers. Space raises a persistent throttle lever, Shift lowers it and applies an airbrake, and the wheel adjusts it in 4% steps. Throttle stays where it was on release; engine power spools smoothly. V11 reduces all player flight speeds by 30%: cruise is 5.95 world units/s, minimum speed is 3.15, and afterburner tops out at 13.3. Steering and momentum response stay the same. Left click fires the gun; Space is now exclusively throttle. The chase camera and V6 HUD remain. This adapts the reference's easy flight mode rather than its optional 360-roll or mouse modes; no Toyborne source or assets are distributed.
 
 The new HUD uses a left radar card, top-center compass, upper-right missile-seeker strip, lower-left airspeed/altitude/bank/throttle and lower-right gun/hull instruments. Circular locks, secondary contacts, gun hit/activity meters, large SPLASH ONE callouts and a real hostile-projectile proximity alert are generated in CSS/canvas. All telemetry is live and keeps the room's miniature units. MicroFlyers branding and the supplied room remain; the reference MP4 is not uploaded or embedded.
 
@@ -59,7 +59,7 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 
 ## Assets and scale
 
-- V8's jet is **1:100**, replacing the former 1:60 miniature at 60% of its previous dimensions (`JET_SCALE = 0.408`). This is the game's miniature design ratio; the procedural aircraft has no specified real-world counterpart. Its central collision sphere has radius **0.13 world units**, smaller than the visible wings.
+- V11's player jet is **1:200**, exactly half the length, wingspan and height of V10's 1:100 miniature (`JET_SCALE = 0.204`). This is the game's miniature design ratio; the procedural aircraft has no specified real-world counterpart. Its central collision sphere has radius **0.065 world units**, smaller than the visible wings. Player missiles/projectiles and launch offsets are scaled down to match; the camera distance stays the same so the aircraft appears smaller too.
 - Scenery, boundary and drone contact cause **no hull damage**. Actual triangle surfaces gently separate/slide the core without reducing speed, changing heading or resetting the aircraft. Wings may skim furniture. Enemy projectiles still damage the smaller player core. Box bounds remain a conservative broad phase for weapon occlusion.
 - `assets/dining-room.glb` is a browser-ready derivative of the user's 167,670,242-byte OBJ: 5,081,352 bytes, 236 meshes and 294,121 triangles. Sub-centimeter clustering and meshoptimizer simplification reduce the original 1,906,512 triangles; a remote export backdrop outside the room is excluded. Named furniture and architecture remain.
 - The dining OBJ's MTL contains wire colors and no texture references. Curated plaster, oak/walnut, fabric, glass-color and ceramic materials provide readable surfaces. The original OBJ and MTL remain untouched at their source location; the oversized OBJ is not uploaded to GitHub.

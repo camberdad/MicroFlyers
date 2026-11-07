@@ -1,18 +1,17 @@
 {
-  "version": "V10",
-  "versionNumber": 10,
-  "assetVersion": "v10-13f0afba25bc",
-  "publishedAtUtc": "2026-11-07T06:20:34.194Z",
+  "version": "V11",
+  "versionNumber": 11,
+  "assetVersion": "v11-31f274f4efb6",
+  "publishedAtUtc": "2026-11-07T06:29:56.662Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v10/",
-  "description": "Randomized wave starts and forward-only enemy guns",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v11/",
+  "description": "Slower flight and half-size player jet",
   "changes": [
-    "Randomize the player's and every enemy's career starting position and heading at each wave launch or retry, on both maps.",
-    "Keep the player at least 20 world units from each enemy, enemies at least 9 units apart, and prevent aircraft from initially aiming at each other. Validate furniture clearance and six units of clear departure space before launching the whole wave.",
-    "Remove the fixed, nose-on practice target arrangement. Keep the opening rounds harmless and slow, with enemies found through exploration and radar.",
-    "Make enemy planes fly along their actual nose and turn gradually toward patrol waypoints or the player, rather than sliding along a fixed orbit or instantly swiveling to fire.",
-    "Fire enemy guns only when the player is within a narrow 10-degree forward cone, in range, visible through the scenery and the gun has reloaded. Shots originate at the nose and travel forward; no side or rear turret fire.",
-    "Preserve the 30-round difficulty curve, GP/upgrades, saved career progress, Free Fly, forgiving scenery contact and live updates."
+    "Reduce player cruise, minimum and afterburner speeds by 30%: 5.95, 3.15 and 13.3 world units/second respectively, in both Career and Free Fly.",
+    "Halve the player's length, wingspan and height relative to V10, changing the miniature design scale from 1:100 to 1:200 (JET_SCALE 0.204).",
+    "Halve the player's central collision radius to 0.065 and resize player projectiles, missiles and nose launch offsets to match.",
+    "Keep the existing chase-camera distance so the smaller aircraft remains visibly half-size; update scale labels and the airspeed meter's maximum.",
+    "Preserve steering, held throttle, momentum response, both maps, randomized career starts, forward-only enemy guns, GP/upgrades, saves and live updates."
   ],
   "files": [
     {
@@ -48,7 +47,7 @@
     {
       "path": "index.html",
       "bytes": 13891,
-      "sha256": "48f2425d3d5a181b6fa79124be1c65cf0f854c2f58de693ff283998b66058e2a"
+      "sha256": "efb0a0b8f8c9aa3cb5675c571a29b0b6d277290c1e0e38c4882a36ddcca7a551"
     },
     {
       "path": "src/aircraft.js",
@@ -67,13 +66,13 @@
     },
     {
       "path": "src/combat.js",
-      "bytes": 16460,
-      "sha256": "3f4fa1b5b7e95e35bec6ed16b9e29d831ad0a24d260e9e224ec9d528ea5bdf83"
+      "bytes": 16503,
+      "sha256": "bca25284dbd5c9241e196db852210df72056a034e4000ba747be8681e5b4114a"
     },
     {
       "path": "src/flight.js",
-      "bytes": 5505,
-      "sha256": "5f7a215237cba3bbe176352beb24956845b4c01324c8c80600aef61fc60e943c"
+      "bytes": 5509,
+      "sha256": "b9ee49ded07f741639831066c0c06d3187e139da629c605ddc9212f5ac715d1d"
     },
     {
       "path": "src/hud-math.js",
@@ -97,8 +96,8 @@
     },
     {
       "path": "src/maps.js",
-      "bytes": 671,
-      "sha256": "9decbb508f22521519299ec5c87edcfcea349adef7c4a7d2cb8017784e4c9eba"
+      "bytes": 659,
+      "sha256": "1aae673f55bd2b40e34abfeb6790e0999a0f3a2748b18e1c4300293ecef86d12"
     },
     {
       "path": "src/scenery-collision.js",
@@ -117,8 +116,8 @@
     },
     {
       "path": "src/ui.js",
-      "bytes": 8527,
-      "sha256": "30efc3ae725979554b458141ba171c31422ac522ea854f42ad6f9e16b3a0f2dd"
+      "bytes": 8550,
+      "sha256": "0a3be7fdf4b3fdfaee13978004835e6c7d6053895cf7f15418ec3ebd394383c0"
     },
     {
       "path": "src/update-policy.js",
@@ -133,7 +132,7 @@
     {
       "path": "src/version.js",
       "bytes": 135,
-      "sha256": "1ae0d3739cd60aa93f8934aa4dc10a7bd558269f8937f4c9a51d9052a3f27a8b"
+      "sha256": "e3fabb59647b89e66447e8e3077d8e453253379b7b59b2cc180267eb78c74caf"
     },
     {
       "path": "src/world.js",

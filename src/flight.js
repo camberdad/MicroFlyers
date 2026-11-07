@@ -3,7 +3,7 @@ import * as THREE from 'three';
 // Independent implementation of Toyborne-style Arrow controls, scaled to our room.
 // Turn input controls heading directly; bank is the visual response to that turn.
 export const flightConfig = Object.freeze({
-  forwardSpeed: 8.5,
+  forwardSpeed: 5.95,
   pitchSpeed: 1.04,
   rollSpeed: 2.4,
   yawSpeed: 1.2,
@@ -16,8 +16,8 @@ export const flightConfig = Object.freeze({
   throttleUpRate: .7,
   throttleDownRate: .8,
   engineResponse: 3,
-  minSpeed: 4.5,
-  boostSpeed: 19,
+  minSpeed: 3.15,
+  boostSpeed: 13.3,
 });
 export const FLIGHT = Object.freeze({ minSpeed: flightConfig.minSpeed, cruiseSpeed: flightConfig.forwardSpeed, boostSpeed: flightConfig.boostSpeed, maxHealth: 100 });
 const forward = new THREE.Vector3();

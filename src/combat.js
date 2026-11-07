@@ -133,7 +133,7 @@ export class Combat {
     this.fireCooldown = this.loadout.gunInterval;
     this.gunActivity = 1;
     const forward = forwardVector(state);
-    const origin = state.position.clone().addScaledVector(forward, .44);
+    const origin = state.position.clone().addScaledVector(forward, .22);
     this.addBullet(origin, forward.multiplyScalar(85).add(state.velocity), false, this.loadout.gunDamage);
     this.events.shot?.();
   }
@@ -141,6 +141,7 @@ export class Combat {
   addBullet(origin, velocity, hostile, damage = hostile ? this.config.damage : 1) {
     if (this.bullets.length >= 120) return;
     const mesh = new THREE.Mesh(bulletGeometry, hostile ? enemyBulletMaterial : bulletMaterial);
+    if(!hostile)mesh.scale.setScalar(.5);
     mesh.position.copy(origin); mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, -1), velocity.clone().normalize());
     this.scene.add(mesh);
     this.bullets.push({ mesh, previous: origin.clone(), velocity, hostile,damage, life: hostile ? 3.5 : 1.5 });
@@ -167,9 +168,9 @@ export class Combat {
     const target = this.getMissileTarget(state);
     if (!target) { this.events.weaponNotice?.('NO MISSILE LOCK · FACE A DRONE'); return false; }
     if (this.bullets.length >= 120) return false;
-    const forward = forwardVector(state), origin = state.position.clone().addScaledVector(forward,.5);
+    const forward = forwardVector(state), origin = state.position.clone().addScaledVector(forward,.25);
     const mesh = new THREE.Group();
-    mesh.scale.setScalar(.6);
+    mesh.scale.setScalar(.3);
     mesh.add(new THREE.Mesh(missileBodyGeometry,missileMaterial));
     const nose = new THREE.Mesh(missileNoseGeometry,missileMaterial); nose.position.z = -.3;
     const fin = new THREE.Mesh(missileFinGeometry,missileMaterial); fin.position.z = .15;

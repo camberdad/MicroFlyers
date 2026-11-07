@@ -6,13 +6,17 @@ import { resolveSceneryContact } from '../src/scenery-collision.js';
 import { createFlightState } from '../src/flight.js';
 import { createJet } from '../src/aircraft.js';
 import { JET_SCALE, PLAYER_CORE_RADIUS } from '../src/maps.js';
+import { createJet as createPreviousJet } from '../versions/v10/src/aircraft.js';
 
 function worldFor(root) {
   return {surfaceTree:new SurfaceIndex(root),bounds:new THREE.Box3(new THREE.Vector3(-20,-20,-20),new THREE.Vector3(20,20,20))};
 }
-test('1:100 jet is 60% of the prior 1:60 dimensions and has a small central core',()=>{
-  const jet=createJet();assert.equal(jet.scale.x,.68*.6);assert.equal(JET_SCALE,jet.scale.x);
+test('V11 jet is exactly half the V10 dimensions and retains a proportional central core',()=>{
+  const jet=createJet();assert.ok(Math.abs(jet.scale.x-.204)<1e-12);assert.equal(JET_SCALE,jet.scale.x);
   const size=new THREE.Box3().setFromObject(jet).getSize(new THREE.Vector3());
+  const previousSize=new THREE.Box3().setFromObject(createPreviousJet()).getSize(new THREE.Vector3());
+  for(const axis of ['x','y','z'])assert.ok(Math.abs(size[axis]*2-previousSize[axis])<1e-9);
+  assert.equal(PLAYER_CORE_RADIUS,.065);
   assert.ok(PLAYER_CORE_RADIUS*2 < size.x/2);
 });
 test('repeated wall contact slides without health loss, speed loss, bounce or teleport',()=>{
