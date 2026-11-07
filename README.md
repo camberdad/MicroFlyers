@@ -97,6 +97,8 @@ The repository uses GitHub Pages from `main` at the root. Existing website embed
 
 For every future release: increment `src/version.js`, add its concrete changes at the top of `CHANGELOG.md`, test the game, then run `node scripts/release.mjs`. Commit and push the new runtime folder, manifests, changelog and root page together. Never overwrite a published numbered folder. Verify Pages and the live version/checksums after publishing. `AGENTS.md` preserves these release requirements for future work.
 
+Run `node scripts/verify-release.mjs` after Pages finishes deploying to verify the public version, root HTML, every numbered runtime asset checksum, retained V1, and embed snippet. Publish a matching GitHub Release (`vN`) with the concrete changes as well as updating `CHANGELOG.md`.
+
 This folder is the complete static site. All runtime URLs are relative, including the FBX, so repository subpaths work.
 
 1. Add these files to your GitHub repository and push them. Include `assets/` and `vendor/`.
