@@ -1,17 +1,16 @@
 import * as THREE from 'three';
 
-// Same steering model as the supplied example. Speeds use this room's normalized
-// world units: 8.5 preserves the existing ~58 cm/s cruise instead of crossing the
-// entire room in two seconds at 50 world units/s.
+// Broad banked turns inspired by the reference footage. Translation still uses
+// this room's original normalized speed and momentum; keyboard controls remain.
 export const flightConfig = Object.freeze({
   forwardSpeed: 8.5,
-  pitchSpeed: 1.5,
-  rollSpeed: 2.0,
+  pitchSpeed: 1.1,
+  rollSpeed: 1.8,
   yawSpeed: 1.0,
-  turnRadiusMultiplier: 1.5,
-  autoLevelSpeed: 3.5,
-  maxRoll: .6,
-  maxPitch: .4,
+  turnRadiusMultiplier: 4.5,
+  autoLevelSpeed: 2.6,
+  maxRoll: 1.2,
+  maxPitch: .55,
   minSpeed: 4.5,
   boostSpeed: 19,
 });

@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
 
-**Current release: V5.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V6.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -38,7 +38,9 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-V5 uses keyboard-only flight: W climbs, S dives, A/D bank, and Q/E add rudder. Mouse movement never steers. `flightConfig.turnRadiusMultiplier` is 1.5, giving a 50% wider turn radius than V4 at the same speed and bank. The capped pitch/bank, automatic leveling, steady camera horizon and speed/momentum model are retained. Cruise remains 8.5 normalized world units/s (~58 cm/s), with boost and braking unchanged.
+V6 uses keyboard-only flight: W climbs, S dives, A/D bank, and Q/E add rudder. Mouse movement never steers. The user's desktop-fighter footage guides the visible motion: deeper banks, smooth pitch/leveling, a slight camera bank, and the jet lower in frame. `flightConfig` uses maxRoll 1.2 radians (~69°), maxPitch 0.55 (~32°), turnRadiusMultiplier 4.5, pitchSpeed 1.1, rollSpeed 1.8 and autoLevelSpeed 2.6. At full bank and cruise, the turn radius is about 32 world units, 50% wider than V5. Cruise stays at 8.5 world units/s (~58 cm/s); boost, braking, minimum airspeed and momentum are unchanged. The footage does not reveal exact input/physics values, so the controller reproduces visible motion cues rather than claiming an exact reconstruction.
+
+The new HUD uses a left radar card, top-center compass, upper-right missile-seeker strip, lower-left airspeed/altitude/bank/throttle and lower-right gun/hull instruments. Circular locks, secondary contacts, gun hit/activity meters, large SPLASH ONE callouts and a real hostile-projectile proximity alert are generated in CSS/canvas. All telemetry is live and keeps the room's miniature units. MicroFlyers branding and the supplied room remain; the reference MP4 is not uploaded or embedded.
 
 Left click fires the gun. Right click launches a homing missile toward a living drone ahead within 65 world units and clear line of sight. The HUD shows LOCK READY or the 1.8-second reload countdown. Missiles turn at a limited rate, leave a visible trail, destroy a drone on direct impact, and expire after five seconds. Furniture blocks locks and missiles; a destroyed target is not tracked further. The gun reticle still shows firing direction. Switching away pauses the game.
 
@@ -63,6 +65,7 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/aircraft.js` | Procedural micro jet model |
 | `src/combat.js` | Four drone patrols, gunfire, homing missiles, lock selection, reloads, trails, nearest swept hits and damage |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
+| `src/hud.css`, `src/hud-math.js` | Footage-inspired HUD layout, compass calculations and cardinal directions |
 | `src/audio.js` | Optional synthesized audio, started from a user gesture |
 | `scripts/serve.mjs` | Dependency-free local HTTP server |
 | `scripts/vendor.mjs` | Refresh pinned official Three.js modules and their loader dependencies |

@@ -2,7 +2,7 @@
 
 The user requested that every new game version be numbered, shown on screen, published to GitHub with its changes, and delivered to existing website embeds through live updates.
 
-Flight direction (latest requests, V5): keyboard-only steering; remove cursor steering entirely. W climbs and S dives, A/D bank and turn, Q/E add rudder. Increase turning radius (V5 uses a 1.5 radius multiplier) while retaining V4's capped pitch/bank, neutral leveling and speed/momentum. Left click fires the gun; right click launches a homing missile when a visible drone is locked. Preserve prior releases unchanged.
+Flight direction (latest footage reference, V6): keyboard-only steering; W climbs and S dives, A/D bank and turn, Q/E add rudder. Keep cursor steering removed. Use broad banked turns and a subtly bank-following chase camera with the aircraft low in frame. V6 uses maxRoll 1.2, maxPitch 0.55, turnRadiusMultiplier 4.5, pitchSpeed 1.1, rollSpeed 1.8 and autoLevelSpeed 2.6: about 50% wider full-bank turns than V5, while preserving forward speed/momentum. Left click fires the gun; right click launches a homing missile when a visible drone is locked. HUD direction: compact radar on the left, seeker upper right, heading top center, airspeed lower left, twin-gun/hull lower right, circular tracking markers and prominent combat callouts, inspired by the user's local reference MP4. Keep the MicroFlyers brand, accurate miniature-world units, and working telemetry; do not publish the reference footage. Preserve prior releases unchanged.
 
 - Stable repository: `https://github.com/camberdad/MicroFlyers`.
 - Stable game/embed URL: `https://camberdad.github.io/MicroFlyers/`.

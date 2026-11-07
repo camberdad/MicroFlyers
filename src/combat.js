@@ -29,6 +29,7 @@ export class Combat {
     this.scene = scene; this.world = world; this.events = events;
     this.drones = []; this.bullets = []; this.particles = [];
     this.kills = 0; this.fireCooldown = 0; this.missileCooldown = 0; this.elapsed = 0;
+    this.gunActivity = 0; this.gunHits = 0;
   }
 
   reset() {
@@ -37,6 +38,7 @@ export class Combat {
     // Drone geometry/materials are disposed on restart; shared shot/effect assets stay cached.
     for (const drone of this.drones) drone.mesh.traverse(o => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
     this.drones = []; this.bullets = []; this.particles = []; this.kills = 0; this.elapsed = 0; this.fireCooldown = 0; this.missileCooldown = 0;
+    this.gunActivity = 0; this.gunHits = 0;
     for (let i = 0; i < 4; i++) this.spawnDrone(i);
   }
 
@@ -69,6 +71,7 @@ export class Combat {
   shoot(state) {
     if (this.fireCooldown > 0) return;
     this.fireCooldown = .105;
+    this.gunActivity = 1;
     const forward = forwardVector(state);
     const origin = state.position.clone().addScaledVector(forward, .85);
     this.addBullet(origin, forward.multiplyScalar(85).add(state.velocity), false);
@@ -134,6 +137,7 @@ export class Combat {
   update(dt, player, active = true) {
     this.elapsed += dt; this.fireCooldown = Math.max(0, this.fireCooldown - dt);
     this.missileCooldown = Math.max(0, this.missileCooldown - dt);
+    this.gunActivity = Math.max(0,this.gunActivity-dt*2.5);
     playerBox.setFromCenterAndSize(player.position, playerSize);
     for (const drone of this.drones) {
       if (!drone.alive) continue;
@@ -195,7 +199,9 @@ export class Combat {
         const impact = ray.at(nearest, new THREE.Vector3());
         if (hit === 'player') this.events.damage?.(10, 'INCOMING FIRE');
         else if (hit !== 'world') {
-          hit.health -= bullet.damage ?? 1; this.events.hit?.(); this.burst(impact, 5);
+          hit.health -= bullet.damage ?? 1;
+          if (!bullet.missile) this.gunHits++;
+          this.events.hit?.(); this.burst(impact, 5);
           if (hit.health <= 0) {
             hit.alive = false; hit.mesh.visible = false; this.kills++;
             this.burst(hit.mesh.position, 25); this.events.kill?.(this.kills);

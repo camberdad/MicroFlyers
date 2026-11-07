@@ -22,6 +22,7 @@ test('a fast shot crosses and damages a drone; three hits produce one eliminatio
   const { combat, player, events } = setup();
   for (let i = 0; i < 3; i++) { combat.shoot(player); combat.update(.15, player); }
   assert.equal(events.hits, 3); assert.equal(events.kills, 1); assert.equal(combat.kills, 1);
+  assert.equal(combat.gunHits,3);
   assert.equal(combat.drones[0].alive, false); assert.equal(combat.bullets.length, 0);
 });
 test('furniture between the jet and a drone blocks damage, regardless of endpoint distance', () => {
@@ -47,6 +48,7 @@ test('fire cooldown limits rate; restart removes old bullets, effects, and drone
   assert.equal(combat.kills, 0); assert.equal(combat.drones.length, 4); assert.equal(scene.children.length, 4);
   assert.ok(combat.drones.every(d => d.alive && d.health === 3));
   assert.equal(trail.parent,null); assert.equal(combat.missileCooldown,0);
+  assert.equal(combat.gunHits,0); assert.equal(combat.gunActivity,0);
 });
 
 test('a missile locks ahead, starts a cooldown and cannot be spammed', () => {
@@ -66,6 +68,7 @@ test('a homing missile bends toward an off-axis target and destroys it on impact
   assert.ok(new THREE.Vector3(0,0,-1).angleTo(missile.velocity.clone().normalize()) <= MISSILE.turnRate/120+1e-6);
   for (let i=0;i<150 && combat.drones[0].alive;i++) combat.update(1/120,player);
   assert.equal(events.kills,1); assert.equal(combat.drones[0].alive,false);
+  assert.equal(combat.gunHits,0);
   assert.equal(combat.bullets.filter(b=>b.missile).length,0);
 });
 test('furniture blocks a missile lock and does not consume the reload', () => {

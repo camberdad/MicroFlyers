@@ -51,11 +51,11 @@ test('held steering reaches the configured pitch/bank caps without inverting', (
   const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:1 }, 6);
   assert.ok(Math.abs(state.currentRoll - flightConfig.maxRoll) < 1e-9);
   assert.ok(Math.abs(state.currentPitch - flightConfig.maxPitch) < 1e-9);
-  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .75);
+  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .25);
 });
 test('neutral inputs level both axes and settle the banking turn', () => {
   const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:-1 }, 1);
-  fly(state, neutral, 2);
+  fly(state, neutral, 3);
   const before = forwardVector(state);
   fly(state, neutral, 1);
   assert.ok(Math.abs(state.currentRoll) < .0001 && Math.abs(state.currentPitch) < .0001);
@@ -69,15 +69,15 @@ test('maneuvers do not alter the cruise, afterburner or braking speed model', ()
     assert.equal(straight.speed, turning.speed);
   }
 });
-test('a cruise-speed full-bank circle has the wider V5 turning radius', () => {
+test('a cruise-speed full-bank circle is about 50% wider than V5', () => {
   const state = createFlightState(new THREE.Vector3());
   state.quaternion.setFromEuler(new THREE.Euler(0,0,flightConfig.maxRoll,'YXZ'));
   let minX = 0, maxX = 0;
-  for (let i=0;i<2160;i++) {
+  for (let i=0;i<3360;i++) {
     updateFlight(state,{...neutral,roll:1},1/120);
     minX = Math.min(minX,state.position.x); maxX = Math.max(maxX,state.position.x);
   }
-  assert.ok(maxX-minX > 40 && maxX-minX < 44, `Circle diameter ${maxX-minX}`);
+  assert.ok(maxX-minX > 62 && maxX-minX < 66, `Circle diameter ${maxX-minX}`);
 });
 
 test('automatic leveling is consistent at different frame rates', () => {
@@ -86,5 +86,5 @@ test('automatic leveling is consistent at different frame rates', () => {
   fly(fast, neutral, 2, 1/120); fly(slow, neutral, 2, 1/30);
   assert.ok(Math.abs(fast.currentPitch - slow.currentPitch) < 1e-9);
   assert.ok(Math.abs(fast.currentRoll - slow.currentRoll) < 1e-9);
-  assert.ok(Math.abs(fast.currentRoll - -.5 * Math.exp(-3.5*2)) < 1e-9);
+  assert.ok(Math.abs(fast.currentRoll - -.5 * Math.exp(-flightConfig.autoLevelSpeed*2)) < 1e-9);
 });

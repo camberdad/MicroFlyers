@@ -49,12 +49,12 @@ async function init() {
   }
   combat = new Combat(scene, world, {
     shot: () => audio.tone(720, .075, 'triangle', .22),
-    missileShot: () => { audio.tone(150, .3, 'sawtooth', .4); notify('HOMING MISSILE AWAY', 1300); },
-    weaponNotice: message => notify(message, 1200),
+    missileShot: () => { audio.tone(150, .3, 'sawtooth', .4); notify('MISSILE AWAY',1300,'Homing missile tracking the locked bandit.'); },
+    weaponNotice: message => notify(message.startsWith('NO MISSILE') ? 'NO LOCK' : 'REARMING',1200,message),
     hit: () => { hitMarker(); audio.tone(330, .06, 'square', .14); },
     kill: count => {
       audio.tone(95, .38, 'sawtooth', .45);
-      notify(`DRONE ELIMINATED  /  ${count} OF 4`);
+      notify('SPLASH ONE',2200,`BANDIT DOWN · ${count} / 4 ELIMINATIONS`);
       if (count === 4) missionPending = true;
     },
     damage: takeDamage,
@@ -103,9 +103,9 @@ function launch() {
   $('mission-label').textContent = 'Clear the airspace'; $('mission-detail').textContent = 'Track and eliminate 4 rogue drones';
   aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.visible = true;
   aircraft.userData.exhaust.scale.z = .75;
-  camera.position.copy(player.position).add(new THREE.Vector3(0, 1.15, 4.3));
+  camera.position.copy(player.position).add(new THREE.Vector3(0,1.5,4.5));
   setMode('playing');
-  notify('W CLIMBS · S DIVES · RIGHT CLICK LAUNCHES A HOMING MISSILE', 3200);
+  notify('CLEARED FOR TAKEOFF',3200,'W/S PITCH · A/D BANK · RIGHT CLICK HOMING MISSILE');
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -150,7 +150,7 @@ function finish(won) {
 function takeDamage(amount, reason) {
   if ((mode !== 'playing' && mode !== 'exploring') || player.invulnerable > 0) return;
   player.health = Math.max(0, player.health - amount); player.invulnerable = 1.1;
-  flashDamage(); notify(reason, 1200); audio.tone(65, .2, 'sawtooth', .4);
+  flashDamage(); notify(reason,1200,`AIRFRAME ${Math.ceil(player.health)}% · BREAK AWAY`); audio.tone(65, .2, 'sawtooth', .4);
   if (player.health <= 0) { combat.burst(player.position, 30); finish(false); }
 }
 
@@ -191,8 +191,10 @@ function directionAfterImpact(state, normal) {
 
 function updateCamera(dt) {
   forwardVector(player, forward);
-  cameraUp.set(0, 1, 0);
-  cameraDesired.copy(player.position).addScaledVector(forward, -4.3).addScaledVector(cameraUp, 1.15);
+  // The footage keeps the jet low in frame, with only a little camera bank.
+  cameraUp.set(0,1,0).applyQuaternion(player.quaternion).multiplyScalar(.18);
+  cameraUp.y += .82; cameraUp.normalize();
+  cameraDesired.copy(player.position).addScaledVector(forward,-4.5); cameraDesired.y += 1.5;
   // Shorten the chase arm before a wall can obscure the aircraft.
   const offset = cameraDesired.clone().sub(player.position);
   let distance = offset.length();
@@ -202,13 +204,12 @@ function updateCamera(dt) {
     if (cameraRay.intersectBox(c.box, intersection)) distance = Math.min(distance, Math.max(.7, player.position.distanceTo(intersection) - .25));
   }
   cameraDesired.copy(player.position).addScaledVector(cameraRay.direction, distance);
-  camera.position.lerp(cameraDesired, 1 - Math.exp(-8 * dt));
-  cameraTarget.copy(player.position).addScaledVector(forward, 7).addScaledVector(cameraUp, .35);
-  // Keep the horizon steady while the jet visibly banks into a casual turn.
+  camera.position.lerp(cameraDesired, 1 - Math.exp(-7 * dt));
+  cameraTarget.copy(player.position).addScaledVector(forward,9); cameraTarget.y += .9;
   cameraRotation.lookAt(camera.position, cameraTarget, cameraUp);
   cameraOrientation.setFromRotationMatrix(cameraRotation);
-  camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-10 * dt));
-  const targetFov = input.boost && !input.brake ? 70 : 61;
+  camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-6 * dt));
+  const targetFov = input.boost && !input.brake ? 72 : 64;
   camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-3 * dt));
   camera.updateProjectionMatrix(); camera.updateMatrixWorld();
 }

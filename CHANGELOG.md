@@ -2,6 +2,16 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V6 — Footage-inspired HUD and broader banking flight
+
+- Review the supplied 28.82-second desktop-fighter footage and use its HUD layout and visible flight motion as references.
+- Move the radar to a compact left-side card and add a top-center heading tape, upper-right missile seeker, lower-left airspeed/altitude/bank/throttle and lower-right twin-gun/hull instruments.
+- Add circular lock rings, secondary bandit markers, SPLASH ONE kill callouts, gun-hit/activity readouts and a real incoming-fire warning.
+- Keep all HUD readouts tied to live gameplay, with centimeters/meters for the miniature room.
+- Increase full-bank turn radius by about 50% over V5 (about 32 world units at cruise), with deeper banks and smoother pitch/leveling.
+- Keep the aircraft lower in frame and let the chase camera follow a small part of the bank, matching the footage's motion cues.
+- Preserve keyboard-only W/S flight, gun and right-click homing missiles, original speed/momentum, live updates and previous releases.
+
 ## V5 — Keyboard flight, wider turns and homing missiles
 
 - Remove cursor steering and its toggle/indicator entirely; use keyboard-only flight.

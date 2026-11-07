@@ -1,19 +1,19 @@
 {
-  "version": "V5",
-  "versionNumber": 5,
-  "assetVersion": "v5-2b6141785e1d",
-  "publishedAtUtc": "2026-11-07T04:51:37.751Z",
+  "version": "V6",
+  "versionNumber": 6,
+  "assetVersion": "v6-ad23ebc725d0",
+  "publishedAtUtc": "2026-11-07T05:07:13.396Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v5/",
-  "description": "Keyboard flight, wider turns and homing missiles",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v6/",
+  "description": "Footage-inspired HUD and broader banking flight",
   "changes": [
-    "Remove cursor steering and its toggle/indicator entirely; use keyboard-only flight.",
-    "Invert W/S: W climbs and S dives. Keep A/D banking, Q/E rudder, boost/braking and automatic leveling.",
-    "Increase turn radius by 50% at the same speed and bank, using turnRadiusMultiplier 1.5.",
-    "Launch a homing missile with right click; left click remains the gun.",
-    "Acquire a living drone ahead within range and line of sight, with a lock indicator and 1.8-second missile reload.",
-    "Add visible rockets and trails, limited homing turn speed, furniture collisions and a five-second missile lifetime.",
-    "Preserve prior versions, live updates, and the stable website/embed URL."
+    "Review the supplied 28.82-second desktop-fighter footage and use its HUD layout and visible flight motion as references.",
+    "Move the radar to a compact left-side card and add a top-center heading tape, upper-right missile seeker, lower-left airspeed/altitude/bank/throttle and lower-right twin-gun/hull instruments.",
+    "Add circular lock rings, secondary bandit markers, SPLASH ONE kill callouts, gun-hit/activity readouts and a real incoming-fire warning.",
+    "Keep all HUD readouts tied to live gameplay, with centimeters/meters for the miniature room.",
+    "Increase full-bank turn radius by about 50% over V5 (about 32 world units at cruise), with deeper banks and smoother pitch/leveling.",
+    "Keep the aircraft lower in frame and let the chase camera follow a small part of the bank, matching the footage's motion cues.",
+    "Preserve keyboard-only W/S flight, gun and right-click homing missiles, original speed/momentum, live updates and previous releases."
   ],
   "files": [
     {
@@ -38,8 +38,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 8688,
-      "sha256": "b6722b57e6da4da24d768b1ee02ea06faf9e3e986d7a1b102d9d515d3cd91afb"
+      "bytes": 10126,
+      "sha256": "608d429cbd06fdb997983bb460fcb261ceb81c22012f8cec6d6b097103db8824"
     },
     {
       "path": "src/aircraft.js",
@@ -53,13 +53,23 @@
     },
     {
       "path": "src/combat.js",
-      "bytes": 12272,
-      "sha256": "6db825396e59c999b0dbfc3d749deb5043b6f56a7683079a718b4f65748d236d"
+      "bytes": 12503,
+      "sha256": "f841c9fda42fcba3ce167716d938e5ee23bf9c51756f29dde6bcbb25f942be03"
     },
     {
       "path": "src/flight.js",
-      "bytes": 4242,
-      "sha256": "7fdba2a85dc1b28cb869a89d6f7fd11b8993c17ee3c2adf15e2d3a5352db22ce"
+      "bytes": 4189,
+      "sha256": "32f8314d24c53c919aaf99234d400294bc3dc4587ba24bd7a1415f113ab54988"
+    },
+    {
+      "path": "src/hud-math.js",
+      "bytes": 303,
+      "sha256": "bc17a42d9b8af8264dc06d20958917cb3178551b88401c94724d97704a15209d"
+    },
+    {
+      "path": "src/hud.css",
+      "bytes": 11108,
+      "sha256": "db4259ed8acae77e6fc0f211371948ab78fb919b7228e8b3bf6f6c7f63279762"
     },
     {
       "path": "src/input.js",
@@ -68,13 +78,13 @@
     },
     {
       "path": "src/main.js",
-      "bytes": 18245,
-      "sha256": "6752124f9610919298cd3c52a90297e375a7f55f83993aebed0cf045406f63f9"
+      "bytes": 18501,
+      "sha256": "8badfa331f35991e6fb3048fd7a9e1143e6cfcf3c5641efb49a45560450d0ef5"
     },
     {
       "path": "src/ui.js",
-      "bytes": 5141,
-      "sha256": "1e1798a80009b82dfd3bc5fccf78c416a56ecfac8b6388802ff0bb3f889d3151"
+      "bytes": 8128,
+      "sha256": "6d81bb17a457232ecdfa72c64ea54b2ca8f8a9bb92b6c810cf4eef5699df9e4f"
     },
     {
       "path": "src/update-policy.js",
@@ -89,7 +99,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "86d683bb89141777047126491a89db3024c5adee87b5a829fa057bc6b574bf3c"
+      "sha256": "faa998130b60c4cf0a6db31798be8bbe78d482c871b0176b98f972eb2156db4a"
     },
     {
       "path": "src/world.js",
