@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { initWorld, loadAirfield, isSafePosition } from './world.js';
 import { createJet } from './aircraft.js';
-import { createFlightState, updateFlight, forwardVector } from './flight.js';
+import { createFlightState, updateFlight, forwardVector,adjustThrottle } from './flight.js';
 import { readKeyboardFlight } from './input.js';
 import { Combat } from './combat.js';
 import { AudioEngine } from './audio.js';
@@ -16,6 +16,14 @@ let hudAccumulator = 0, simulationTime = 0, missionPending = false;
 const keys = new Set();
 const audio = new AudioEngine();
 const updates = new LiveUpdates(returnToHangar);
+const controlSettings = {pitchStyle:'beginner',sensitivity:1};
+try {
+  const saved = JSON.parse(localStorage.getItem('microflyers.controls.v7')||'null');
+  if (saved) {
+    controlSettings.pitchStyle = saved.pitchStyle==='flight' ? 'flight' : 'beginner';
+    controlSettings.sensitivity = THREE.MathUtils.clamp(Number(saved.sensitivity)||1,.5,1.5);
+  }
+} catch { /* Embedded/offline play does not require storage. */ }
 const input = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false, fire: false };
 const forward = new THREE.Vector3(), cameraDesired = new THREE.Vector3(), cameraTarget = new THREE.Vector3();
 const cameraUp = new THREE.Vector3(), cameraRotation = new THREE.Matrix4(), cameraOrientation = new THREE.Quaternion();
@@ -105,7 +113,7 @@ function launch() {
   aircraft.userData.exhaust.scale.z = .75;
   camera.position.copy(player.position).add(new THREE.Vector3(0,1.5,4.5));
   setMode('playing');
-  notify('CLEARED FOR TAKEOFF',3200,'W/S PITCH · A/D BANK · RIGHT CLICK HOMING MISSILE');
+  notify('CLEARED FOR TAKEOFF',3200,'A/D TURNS DIRECTLY · SPACE THROTTLE UP · SHIFT BRAKE');
   renderer.domElement.focus({ preventScroll: true });
 }
 
@@ -155,8 +163,8 @@ function takeDamage(amount, reason) {
 }
 
 function readInput() {
-  readKeyboardFlight(keys, input);
-  input.fire = mouseFire || keys.has('Space');
+  readKeyboardFlight(keys,input,controlSettings);
+  input.fire = mouseFire;
 }
 
 function updatePlayerCollision() {
@@ -209,7 +217,7 @@ function updateCamera(dt) {
   cameraRotation.lookAt(camera.position, cameraTarget, cameraUp);
   cameraOrientation.setFromRotationMatrix(cameraRotation);
   camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-6 * dt));
-  const targetFov = input.boost && !input.brake ? 72 : 64;
+  const targetFov = player.engineThrottle>.85 && !input.brake ? 72 : 64;
   camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-3 * dt));
   camera.updateProjectionMatrix(); camera.updateMatrixWorld();
 }
@@ -235,7 +243,7 @@ function animate(timestamp) {
     }
     aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion);
     aircraft.visible = !player.invulnerable || Math.sin(simulationTime * 35) > -.3;
-    aircraft.userData.exhaust.scale.z = input.boost && !input.brake ? 2 : .75;
+    aircraft.userData.exhaust.scale.z = player.engineThrottle>.85 && !input.brake ? 2 : .75+player.engineThrottle*.3;
     updateCamera(dt);
     hudAccumulator += dt;
     if (hudAccumulator > 1 / 30) { updateHUD(player, combat, camera, input, world, elapsed); hudAccumulator = 0; }
@@ -264,6 +272,17 @@ async function toggleSound() {
   if (mode === 'playing' || mode === 'exploring') renderer.domElement.focus({ preventScroll: true });
 }
 function bindEvents() {
+  $('pitch-style').value = controlSettings.pitchStyle;
+  $('flight-sensitivity').value = String(controlSettings.sensitivity);
+  $('sensitivity-value').textContent = controlSettings.sensitivity.toFixed(2);
+  const saveControls = () => {
+    controlSettings.pitchStyle = $('pitch-style').value;
+    controlSettings.sensitivity = Number($('flight-sensitivity').value);
+    $('sensitivity-value').textContent = controlSettings.sensitivity.toFixed(2);
+    try { localStorage.setItem('microflyers.controls.v7',JSON.stringify(controlSettings)); } catch { /* Settings still apply for this session. */ }
+  };
+  $('pitch-style').addEventListener('change',saveControls);
+  $('flight-sensitivity').addEventListener('input',saveControls);
   $('launch-button').addEventListener('click', launch);
   $('pause-button').addEventListener('click', pause); $('resume-button').addEventListener('click', resume);
   $('restart-button').addEventListener('click', launch); $('again-button').addEventListener('click', launch);
@@ -277,13 +296,13 @@ function bindEvents() {
   });
   $('help-button').addEventListener('click', showHelp); $('close-help').addEventListener('click', closeHelp); $('help-done').addEventListener('click', closeHelp);
   $('sound-button').addEventListener('click', toggleSound); $('fullscreen-button').addEventListener('click', fullscreen);
-  const flightCodes = new Set(['KeyW','KeyS','KeyA','KeyD','KeyQ','KeyE','ShiftLeft','ShiftRight','Space']);
+  const flightCodes = new Set(['KeyW','KeyS','KeyA','KeyD','KeyQ','KeyE','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','ShiftLeft','ShiftRight','Space']);
   addEventListener('keydown', event => {
     if (event.code === 'Tab') {
       const dialogs = [...document.querySelectorAll('.modal-backdrop:not(.hidden)')];
       const dialog = dialogs.at(-1);
       if (dialog) {
-        const controls = [...dialog.querySelectorAll('button:not(:disabled)')].filter(el => !el.classList.contains('hidden'));
+        const controls = [...dialog.querySelectorAll('button:not(:disabled),select:not(:disabled),input:not(:disabled)')].filter(el => !el.classList.contains('hidden'));
         const first = controls[0], last = controls.at(-1);
         if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
           event.preventDefault(); last?.focus();
@@ -318,6 +337,11 @@ function bindEvents() {
   addEventListener('pointerup', event => { if (event.button === 0) mouseFire = false; });
   addEventListener('pointercancel', () => { mouseFire = false; missileRequested = false; });
   renderer.domElement.addEventListener('pointerleave', () => { mouseFire = false; });
+  renderer.domElement.addEventListener('wheel',event=>{
+    if (mode!=='playing' && mode!=='exploring') return;
+    event.preventDefault();
+    adjustThrottle(player,-Math.sign(event.deltaY)*.04);
+  },{passive:false});
   addEventListener('blur', () => { resetInput(); pause(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) { resetInput(); pause(); } });
   addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });

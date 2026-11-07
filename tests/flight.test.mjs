@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/build/three.module.js';
-import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, flightConfig } from '../src/flight.js';
+import { createFlightState, updateFlight, forwardVector, segmentHitsBox, FLIGHT, flightConfig, adjustThrottle, throttleToSpeed } from '../src/flight.js';
 
 const neutral = { pitch: 0, roll: 0, yaw: 0, boost: false, brake: false };
 function fly(state, input, seconds, step = 1 / 120) {
@@ -47,20 +47,21 @@ test('swept projectiles hit a thin box even when both endpoints are outside', ()
   assert.ok(segmentHitsBox(new THREE.Vector3(), new THREE.Vector3(), box));
 });
 
-test('held steering reaches the configured pitch/bank caps without inverting', () => {
+test('held steering reaches the pitch limit and banks deeply without inverting', () => {
   const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:1 }, 6);
-  assert.ok(Math.abs(state.currentRoll - flightConfig.maxRoll) < 1e-9);
+  assert.ok(state.currentRoll > 1 && state.currentRoll <= flightConfig.maxRoll);
   assert.ok(Math.abs(state.currentPitch - flightConfig.maxPitch) < 1e-9);
-  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .25);
+  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > 0);
 });
-test('neutral inputs level both axes and settle the banking turn', () => {
-  const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:-1 }, 1);
+test('release levels the wings, holds pitch and settles the turn', () => {
+  const state = createFlightState(); fly(state, { ...neutral, roll:1, pitch:.5 }, .8);
   fly(state, neutral, 3);
   const before = forwardVector(state);
+  const pitch = state.currentPitch;
   fly(state, neutral, 1);
-  assert.ok(Math.abs(state.currentRoll) < .0001 && Math.abs(state.currentPitch) < .0001);
+  assert.ok(Math.abs(state.currentRoll) < .0001 && state.currentPitch > .2);
+  assert.ok(Math.abs(state.currentPitch-pitch) < 1e-9);
   assert.ok(before.angleTo(forwardVector(state)) < .001);
-  assert.ok(new THREE.Vector3(0,1,0).applyQuaternion(state.quaternion).y > .99999);
 });
 test('maneuvers do not alter the cruise, afterburner or braking speed model', () => {
   const straight = createFlightState(), turning = createFlightState();
@@ -69,22 +70,53 @@ test('maneuvers do not alter the cruise, afterburner or braking speed model', ()
     assert.equal(straight.speed, turning.speed);
   }
 });
-test('a cruise-speed full-bank circle is about 50% wider than V5', () => {
-  const state = createFlightState(new THREE.Vector3());
-  state.quaternion.setFromEuler(new THREE.Euler(0,0,flightConfig.maxRoll,'YXZ'));
-  let minX = 0, maxX = 0;
-  for (let i=0;i<3360;i++) {
-    updateFlight(state,{...neutral,roll:1},1/120);
-    minX = Math.min(minX,state.position.x); maxX = Math.max(maxX,state.position.x);
-  }
-  assert.ok(maxX-minX > 62 && maxX-minX < 66, `Circle diameter ${maxX-minX}`);
+test('heading responds before bank finishes building', () => {
+  const state = createFlightState();
+  fly(state,{...neutral,roll:1},.1);
+  assert.ok(forwardVector(state).x < -.03);
+  assert.ok(state.currentRoll > 0 && state.currentRoll < .3);
 });
 
-test('automatic leveling is consistent at different frame rates', () => {
+test('a bank without turn input levels without continuing to change heading', () => {
+  const state = createFlightState();
+  state.quaternion.setFromEuler(new THREE.Euler(0,.4,1,'YXZ'));
+  const before = forwardVector(state);
+  fly(state,neutral,2);
+  assert.ok(before.angleTo(forwardVector(state)) < 1e-7);
+  assert.ok(Math.abs(state.currentRoll) < .001);
+});
+
+test('wing leveling and pitch hold are consistent at different frame rates', () => {
   const fast = createFlightState(), slow = createFlightState();
-  fast.quaternion.setFromEuler(new THREE.Euler(.3,0,-.5,'YXZ')); slow.quaternion.copy(fast.quaternion);
+  fast.quaternion.setFromEuler(new THREE.Euler(.3,0,-.2,'YXZ')); slow.quaternion.copy(fast.quaternion);
   fly(fast, neutral, 2, 1/120); fly(slow, neutral, 2, 1/30);
   assert.ok(Math.abs(fast.currentPitch - slow.currentPitch) < 1e-9);
   assert.ok(Math.abs(fast.currentRoll - slow.currentRoll) < 1e-9);
-  assert.ok(Math.abs(fast.currentRoll - -.5 * Math.exp(-flightConfig.autoLevelSpeed*2)) < 1e-9);
+  assert.ok(Math.abs(fast.currentPitch-.3) < 1e-9);
+  assert.ok(Math.abs(fast.currentRoll - -.2 * Math.exp(-flightConfig.bankResponse*2)) < 1e-9);
+});
+
+test('throttle holds on release and the engine spools toward the selected speed', () => {
+  const state = createFlightState();
+  fly(state,{...neutral,boost:true},.5);
+  assert.ok(Math.abs(state.throttle-.85) < 1e-9);
+  fly(state,neutral,3);
+  assert.ok(Math.abs(state.throttle-.85) < 1e-9);
+  assert.ok(state.speed > 15 && state.speed < throttleToSpeed(.85));
+  fly(state,{...neutral,brake:true},.25);
+  assert.ok(Math.abs(state.throttle-.65) < 1e-9);
+  const brakedSpeed = state.speed;
+  fly(state,neutral,3);
+  assert.ok(Math.abs(state.throttle-.65) < 1e-9 && state.speed > brakedSpeed);
+});
+
+test('fine throttle adjustments persist and clamp to safe limits', () => {
+  const state = createFlightState();
+  adjustThrottle(state,.04); fly(state,neutral,1);
+  assert.equal(state.throttle,.54);
+  adjustThrottle(state,5); assert.equal(state.throttle,1);
+  adjustThrottle(state,NaN); assert.equal(state.throttle,1);
+  adjustThrottle(state,-5); assert.equal(state.throttle,0);
+  fly(state,neutral,10);
+  assert.ok(state.speed >= FLIGHT.minSpeed && state.speed < FLIGHT.minSpeed+.001);
 });

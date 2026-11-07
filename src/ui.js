@@ -32,7 +32,7 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('speed').textContent = String(Math.round(state.velocity.length() / world.scale)).padStart(3, '0');
   $('speed-bar').style.width = `${state.speed / 19 * 100}%`;
   $('altitude').innerHTML = `${(state.position.y / world.scale / 100).toFixed(1)}<small> M</small>`;
-  $('flight-mode').textContent = input.brake ? 'AIRBRAKE' : input.boost ? 'AFTERBURNER' : 'CRUISE';
+  $('flight-mode').textContent = input.brake ? 'AIRBRAKE' : state.engineThrottle>.85 ? 'AFTERBURNER' : state.throttle<.25 ? 'IDLE' : 'CRUISE';
   $('health-label').textContent = `${Math.ceil(state.health)}%`;
   $('health-bar').style.width = `${state.health}%`;
   $('health-bar').style.background = state.health < 35 ? '#ff9773' : '#a8e4d7';
@@ -47,7 +47,7 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('seeker-detail').textContent = rearming ? 'Missile rack rearming…' : locked ? 'RIGHT CLICK · HOMING MISSILE READY' : 'Face a drone with a clear line of sight.';
   $('seeker-bar').style.width = `${rearming ? (1-combat.missileCooldown/1.8)*100 : locked ? 100 : 0}%`;
   $('bank-angle').textContent = `${Math.round(Math.abs(state.currentRoll)*180/Math.PI)}°`;
-  $('throttle-value').textContent = `${Math.round(state.speed/19*100)}%`;
+  $('throttle-value').textContent = `${Math.round(state.throttle*100)}%`;
   $('gun-status').textContent = input.fire ? 'FIRING' : 'READY';
   $('gun-activity').style.width = `${combat.gunActivity*100}%`;
   $('gun-hits').textContent = String(combat.gunHits);

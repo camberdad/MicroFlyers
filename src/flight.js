@@ -1,16 +1,21 @@
 import * as THREE from 'three';
 
-// Broad banked turns inspired by the reference footage. Translation still uses
-// this room's original normalized speed and momentum; keyboard controls remain.
+// Independent implementation of Toyborne-style Arrow controls, scaled to our room.
+// Turn input controls heading directly; bank is the visual response to that turn.
 export const flightConfig = Object.freeze({
   forwardSpeed: 8.5,
-  pitchSpeed: 1.1,
-  rollSpeed: 1.8,
-  yawSpeed: 1.0,
-  turnRadiusMultiplier: 4.5,
-  autoLevelSpeed: 2.6,
-  maxRoll: 1.2,
-  maxPitch: .55,
+  pitchSpeed: 1.04,
+  rollSpeed: 2.4,
+  yawSpeed: 1.2,
+  inputResponse: 8,
+  releaseResponse: 12,
+  bankResponse: 6,
+  bankGravity: 3.3,
+  maxRoll: Math.PI*85/180,
+  maxPitch: Math.PI*78/180,
+  throttleUpRate: .7,
+  throttleDownRate: .8,
+  engineResponse: 3,
   minSpeed: 4.5,
   boostSpeed: 19,
 });
@@ -25,33 +30,47 @@ export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
     velocity: new THREE.Vector3(0, 0, -FLIGHT.cruiseSpeed),
     angular: new THREE.Vector3(), speed: FLIGHT.cruiseSpeed,
     currentPitch: 0, currentRoll: 0,
+    pitchControl:0, turnControl:0, throttle:.5, engineThrottle:.5,
     health: FLIGHT.maxHealth, invulnerable: 0,
   };
 }
 
-/** Local aircraft axes: +X right, +Y up, -Z nose. dt is capped/substepped by the game loop. */
+export function throttleToSpeed(throttle) {
+  const value = THREE.MathUtils.clamp(throttle,0,1);
+  return value <= .5 ? THREE.MathUtils.lerp(FLIGHT.minSpeed,FLIGHT.cruiseSpeed,value*2)
+    : THREE.MathUtils.lerp(FLIGHT.cruiseSpeed,FLIGHT.boostSpeed,(value-.5)*2);
+}
+
+export function adjustThrottle(state,amount) {
+  if (Number.isFinite(amount)) state.throttle = THREE.MathUtils.clamp(state.throttle+amount,0,1);
+}
+
+/** Local axes: +X right, +Y up, -Z nose. The game loop caps/substeps dt. */
 export function updateFlight(state, input, dt) {
-  if (dt <= 0) return;
-  // Recover the heading from the actual orientation, including collision bounces.
-  // YXZ keeps heading independent of absolute pitch/bank; the pitch cap keeps it
-  // away from the singularity. Never mix incremental Euler rotations and setters.
+  if (!Number.isFinite(dt) || dt <= 0) return;
+  const sensitivity = THREE.MathUtils.clamp(input.sensitivity ?? 1,.5,1.5);
+  const pitchInput = THREE.MathUtils.clamp(input.pitch,-1,1);
+  const turnInput = THREE.MathUtils.clamp(input.roll+input.yaw*.45,-1,1);
+  state.pitchControl = THREE.MathUtils.lerp(state.pitchControl,pitchInput,1-Math.exp(-(pitchInput ? flightConfig.inputResponse : flightConfig.releaseResponse)*dt));
+  state.turnControl = THREE.MathUtils.lerp(state.turnControl,turnInput,1-Math.exp(-(turnInput ? flightConfig.inputResponse : flightConfig.releaseResponse)*dt));
   attitude.setFromQuaternion(state.quaternion, 'YXZ');
   const oldPitch = attitude.x, oldRoll = attitude.z;
-  const leveling = Math.exp(-flightConfig.autoLevelSpeed * dt);
-  state.currentPitch = THREE.MathUtils.clamp(
-    Math.abs(input.pitch) > 1e-4 ? oldPitch + input.pitch * flightConfig.pitchSpeed * dt : oldPitch * leveling,
-    -flightConfig.maxPitch, flightConfig.maxPitch);
-  state.currentRoll = THREE.MathUtils.clamp(
-    Math.abs(input.roll) > 1e-4 ? oldRoll + input.roll * flightConfig.rollSpeed * dt : oldRoll * leveling,
-    -flightConfig.maxRoll, flightConfig.maxRoll);
-  // Bank into a turn automatically; Q/E add independent rudder adjustments.
-  const yawRate = (state.currentRoll + input.yaw) * flightConfig.yawSpeed / flightConfig.turnRadiusMultiplier;
+  // Like Arrow mode, releasing pitch holds the selected nose attitude. Releasing
+  // turn input stops heading change and returns only the wings to level.
+  state.currentPitch = THREE.MathUtils.clamp(oldPitch+state.pitchControl*flightConfig.pitchSpeed*sensitivity*dt,-flightConfig.maxPitch,flightConfig.maxPitch);
+  const yawRate = state.turnControl*flightConfig.yawSpeed*sensitivity;
+  const desiredBank = THREE.MathUtils.clamp(Math.atan2(state.speed*yawRate,flightConfig.bankGravity),-flightConfig.maxRoll,flightConfig.maxRoll);
+  const bankStep = (desiredBank-oldRoll)*(1-Math.exp(-flightConfig.bankResponse*dt));
+  state.currentRoll = oldRoll+THREE.MathUtils.clamp(bankStep,-flightConfig.rollSpeed*sensitivity*dt,flightConfig.rollSpeed*sensitivity*dt);
   attitude.set(state.currentPitch, attitude.y + yawRate * dt, state.currentRoll, 'YXZ');
   state.quaternion.setFromEuler(attitude).normalize();
   state.angular.set((state.currentPitch - oldPitch) / dt, yawRate, (state.currentRoll - oldRoll) / dt);
-  // Keep the original acceleration, braking, minimum airspeed and velocity drift.
-  const targetSpeed = input.brake ? FLIGHT.minSpeed : input.boost ? FLIGHT.boostSpeed : FLIGHT.cruiseSpeed;
-  state.speed = THREE.MathUtils.lerp(state.speed, targetSpeed, 1 - Math.exp(-1.8 * dt));
+  // Persistent throttle lever with engine spool. Space raises it, Shift lowers
+  // it and deploys the airbrake. The lever stays where it was on key release.
+  adjustThrottle(state,((input.boost?flightConfig.throttleUpRate:0)-(input.brake?flightConfig.throttleDownRate:0))*dt);
+  state.engineThrottle = THREE.MathUtils.lerp(state.engineThrottle,state.throttle,1-Math.exp(-flightConfig.engineResponse*dt));
+  const targetSpeed = input.brake ? FLIGHT.minSpeed : throttleToSpeed(state.engineThrottle);
+  state.speed = THREE.MathUtils.lerp(state.speed,targetSpeed,1-Math.exp(-(input.brake?4:1.8)*dt));
   state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed);
   forward.set(0, 0, -1).applyQuaternion(state.quaternion);
   desiredVelocity.copy(forward).multiplyScalar(state.speed);

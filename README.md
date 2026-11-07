@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game using the supplied **InteriorTest.fbx** living room as its airfield.
 
-**Current release: V6.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V7.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -26,19 +26,20 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 
 | Input | Action |
 | --- | --- |
-| W / S | Climb / dive (inverted from V4) |
-| A / D | Roll left / right; banking also gently turns the aircraft |
-| Q / E | Yaw left / right |
-| Shift | Accelerate / afterburner |
-| Space | Brake **and** fire, matching both requested Space bindings |
-| Left mouse button (hold) | Fire without braking |
+| W / S or up / down arrows | Adjust climb / dive; release holds pitch |
+| A / D or left / right arrows | Turn directly left / right; release levels wings |
+| Q / E | Fine left / right rudder adjustment |
+| Space | Raise throttle / afterburner |
+| Shift | Lower throttle and apply airbrake |
+| Mouse wheel | Fine throttle adjustment |
+| Left mouse button (hold) | Fire gun |
 | Right mouse button | Launch a homing missile when a drone is locked |
 | Escape | Pause / resume; closes flight help first |
 | R | Restart mission |
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-V6 uses keyboard-only flight: W climbs, S dives, A/D bank, and Q/E add rudder. Mouse movement never steers. The user's desktop-fighter footage guides the visible motion: deeper banks, smooth pitch/leveling, a slight camera bank, and the jet lower in frame. `flightConfig` uses maxRoll 1.2 radians (~69°), maxPitch 0.55 (~32°), turnRadiusMultiplier 4.5, pitchSpeed 1.1, rollSpeed 1.8 and autoLevelSpeed 2.6. At full bank and cruise, the turn radius is about 32 world units, 50% wider than V5. Cruise stays at 8.5 world units/s (~58 cm/s); boost, braking, minimum airspeed and momentum are unchanged. The footage does not reveal exact input/physics values, so the controller reproduces visible motion cues rather than claiming an exact reconstruction.
+V7 recreates the core behavior of [Toyborne's Arrow controls](https://www.breyes.net/toyborne/en/), independently implemented at the room's scale. Heading responds directly to A/D instead of waiting for bank to build; the aircraft banks into the turn and levels its wings on release. Pitch holds after releasing W/S, with a ±78° limit. Flight controls offers Beginner pitch (default W climbs / S dives), Flight style (S climbs / W dives), and saved sensitivity. Mouse movement never steers. Space raises a persistent throttle lever, Shift lowers it and applies an airbrake, and the wheel adjusts it in 4% steps. Throttle stays where it was on release; engine power spools smoothly. Cruise remains 8.5 world units/s, with the existing 4.5–19 speed range and momentum. Left click fires the gun; Space is now exclusively throttle. The chase camera and V6 HUD remain. This adapts the reference's easy flight mode rather than its optional 360-roll or mouse modes; no Toyborne source or assets are distributed.
 
 The new HUD uses a left radar card, top-center compass, upper-right missile-seeker strip, lower-left airspeed/altitude/bank/throttle and lower-right gun/hull instruments. Circular locks, secondary contacts, gun hit/activity meters, large SPLASH ONE callouts and a real hostile-projectile proximity alert are generated in CSS/canvas. All telemetry is live and keeps the room's miniature units. MicroFlyers branding and the supplied room remain; the reference MP4 is not uploaded or embedded.
 

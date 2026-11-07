@@ -2,6 +2,16 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V7 — Toyborne-style direct steering and held throttle
+
+- Review [Toyborne's](https://www.breyes.net/toyborne/en/) published controls and test its offline Free flight in Arrow mode.
+- Replace bank-dependent heading changes with smooth, direct A/D or left/right-arrow turns. Bank follows the turn; releasing turn input levels the wings and stops turning promptly.
+- Let W/S or up/down arrows adjust pitch and hold that attitude on release, with a 78-degree safety limit.
+- Default to Beginner pitch (W climbs / S dives), preserving the user's preferred direction. Add optional Flight style (S climbs) and saved steering sensitivity in Flight controls.
+- Match held throttle controls: Space raises throttle/afterburner; Shift lowers throttle and applies an airbrake; the wheel makes fine adjustments. Throttle stays set after release.
+- Keep keyboard-only steering, left-click gun, right-click homing missiles, existing room-scaled speed range and momentum, HUD and live updates.
+- Implement the observed control behavior independently; retain previous MicroFlyers versions and do not distribute Toyborne code or assets.
+
 ## V6 — Footage-inspired HUD and broader banking flight
 
 - Review the supplied 28.82-second desktop-fighter footage and use its HUD layout and visible flight motion as references.

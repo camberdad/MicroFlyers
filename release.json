@@ -1,19 +1,19 @@
 {
-  "version": "V6",
-  "versionNumber": 6,
-  "assetVersion": "v6-ad23ebc725d0",
-  "publishedAtUtc": "2026-11-07T05:07:13.396Z",
+  "version": "V7",
+  "versionNumber": 7,
+  "assetVersion": "v7-3cd0edf0ece2",
+  "publishedAtUtc": "2026-11-07T05:33:23.519Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v6/",
-  "description": "Footage-inspired HUD and broader banking flight",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v7/",
+  "description": "Toyborne-style direct steering and held throttle",
   "changes": [
-    "Review the supplied 28.82-second desktop-fighter footage and use its HUD layout and visible flight motion as references.",
-    "Move the radar to a compact left-side card and add a top-center heading tape, upper-right missile seeker, lower-left airspeed/altitude/bank/throttle and lower-right twin-gun/hull instruments.",
-    "Add circular lock rings, secondary bandit markers, SPLASH ONE kill callouts, gun-hit/activity readouts and a real incoming-fire warning.",
-    "Keep all HUD readouts tied to live gameplay, with centimeters/meters for the miniature room.",
-    "Increase full-bank turn radius by about 50% over V5 (about 32 world units at cruise), with deeper banks and smoother pitch/leveling.",
-    "Keep the aircraft lower in frame and let the chase camera follow a small part of the bank, matching the footage's motion cues.",
-    "Preserve keyboard-only W/S flight, gun and right-click homing missiles, original speed/momentum, live updates and previous releases."
+    "Review [Toyborne's](https://www.breyes.net/toyborne/en/) published controls and test its offline Free flight in Arrow mode.",
+    "Replace bank-dependent heading changes with smooth, direct A/D or left/right-arrow turns. Bank follows the turn; releasing turn input levels the wings and stops turning promptly.",
+    "Let W/S or up/down arrows adjust pitch and hold that attitude on release, with a 78-degree safety limit.",
+    "Default to Beginner pitch (W climbs / S dives), preserving the user's preferred direction. Add optional Flight style (S climbs) and saved steering sensitivity in Flight controls.",
+    "Match held throttle controls: Space raises throttle/afterburner; Shift lowers throttle and applies an airbrake; the wheel makes fine adjustments. Throttle stays set after release.",
+    "Keep keyboard-only steering, left-click gun, right-click homing missiles, existing room-scaled speed range and momentum, HUD and live updates.",
+    "Implement the observed control behavior independently; retain previous MicroFlyers versions and do not distribute Toyborne code or assets."
   ],
   "files": [
     {
@@ -38,8 +38,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 10126,
-      "sha256": "608d429cbd06fdb997983bb460fcb261ceb81c22012f8cec6d6b097103db8824"
+      "bytes": 10624,
+      "sha256": "1d23882a539a407bbf990b7c6ead13a9b63d1dc0e5e9ff4561d3355862e7f2f2"
     },
     {
       "path": "src/aircraft.js",
@@ -58,8 +58,8 @@
     },
     {
       "path": "src/flight.js",
-      "bytes": 4189,
-      "sha256": "32f8314d24c53c919aaf99234d400294bc3dc4587ba24bd7a1415f113ab54988"
+      "bytes": 5505,
+      "sha256": "5f7a215237cba3bbe176352beb24956845b4c01324c8c80600aef61fc60e943c"
     },
     {
       "path": "src/hud-math.js",
@@ -68,23 +68,23 @@
     },
     {
       "path": "src/hud.css",
-      "bytes": 11108,
-      "sha256": "db4259ed8acae77e6fc0f211371948ab78fb919b7228e8b3bf6f6c7f63279762"
+      "bytes": 11545,
+      "sha256": "7d01e6f03e866e1599cd0c755f296cd4c8b831e35fa03a6d126da733814f1e06"
     },
     {
       "path": "src/input.js",
-      "bytes": 463,
-      "sha256": "bd9ecfd16c5c3f9e9964fa5e5e541b0eec07f64b41b28d487c9ba0de79e60124"
+      "bytes": 737,
+      "sha256": "c6d2916386772402e476a4de21d998d2dd0561c54b81d460fce01cb7d74c425e"
     },
     {
       "path": "src/main.js",
-      "bytes": 18501,
-      "sha256": "8badfa331f35991e6fb3048fd7a9e1143e6cfcf3c5641efb49a45560450d0ef5"
+      "bytes": 20020,
+      "sha256": "98caa6f9365e7f80c77cdaf9cce42f92d3265231e724b595cfd67b48522ecff6"
     },
     {
       "path": "src/ui.js",
-      "bytes": 8128,
-      "sha256": "6d81bb17a457232ecdfa72c64ea54b2ca8f8a9bb92b6c810cf4eef5699df9e4f"
+      "bytes": 8171,
+      "sha256": "aa1bbfe1c10c5cd6dea2afcf7309477518c985a92a838b862f4cef9673a8f454"
     },
     {
       "path": "src/update-policy.js",
@@ -99,7 +99,7 @@
     {
       "path": "src/version.js",
       "bytes": 134,
-      "sha256": "faa998130b60c4cf0a6db31798be8bbe78d482c871b0176b98f972eb2156db4a"
+      "sha256": "d1c4cfd431e1781c0fedfd4be5a81cdd6912d3368009683e0018ceb69ca968ec"
     },
     {
       "path": "src/world.js",
