@@ -2,6 +2,12 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V14 — Remove the two Living Room trees
+
+- Remove the large tree beside the sofa and the smaller tree by the piano, including their branches and pots.
+- Exclude the removed meshes before building environment collisions, leaving both cleared spaces flyable.
+- Preserve the other decorative plants, furniture, Dining Room, V13 rocket boost/turning, career saves and live updates.
+
 ## V13 — Held rocket boost, glowing jets and tighter turns
 
 - Change Space from a persistent throttle increase to a held rocket boost, adding 18% speed over the selected normal throttle. Release smoothly returns to normal without changing the throttle setting.

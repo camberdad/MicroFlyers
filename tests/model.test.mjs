@@ -51,8 +51,13 @@ test('the actual supplied FBX parses, normalizes, and has a clear launch positio
   // Exercise the actual new surface-based setup on the original FBX as well.
   model.scale.setScalar(1);model.position.set(0,0,0);
   const prepared=prepareAirfield(model,'living');
+  assert.ok(Math.abs(prepared.scale-scale)<1e-12,'tree removal must preserve the room scale');
   assert.ok(isSafePosition(prepared,prepared.spawn,.13));
-  assert.equal(prepared.meshCount,231);
+  assert.equal(prepared.meshCount,208);
+  for(const name of ['Tree','Tree_Branch','Tree_Branch017','Tree07_4K004','Tree07_4K005','Pot','Pot001']) {
+    assert.equal(prepared.room.getObjectByName(name),undefined,`${name} must leave no visible or collision mesh`);
+  }
+  for(const name of ['Tree07_4K','Tree07_4K006','Pot002','Pot003','Pot004'])assert.ok(prepared.room.getObjectByName(name),'other plants stay intact');
   checkCareerSpawns(prepared);
 });
 

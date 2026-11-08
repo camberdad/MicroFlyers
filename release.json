@@ -1,17 +1,15 @@
 {
-  "version": "V13",
-  "versionNumber": 13,
-  "assetVersion": "v13-4caff17241ff",
-  "publishedAtUtc": "2026-11-08T04:36:49.863Z",
+  "version": "V14",
+  "versionNumber": 14,
+  "assetVersion": "v14-7134e2819518",
+  "publishedAtUtc": "2026-11-08T04:46:38.475Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v13/",
-  "description": "Held rocket boost, glowing jets and tighter turns",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v14/",
+  "description": "Remove the two Living Room trees",
   "changes": [
-    "Change Space from a persistent throttle increase to a held rocket boost, adding 18% speed over the selected normal throttle. Release smoothly returns to normal without changing the throttle setting.",
-    "Light up twin blue rocket plumes and additive nozzle glow while boosting; turn the effect off on release, pause, focus loss and return to hangar. Scenery still occludes the effect.",
-    "Increase direct heading turn rate by 12.5%, tightening normal-speed turn radius by about 11% while keeping existing momentum, pitch and bank behavior.",
-    "Show ROCKET BOOST in the live airspeed instrument and use a modest boost camera widening. Update flight-school instructions; wheel throttle and Shift airbrake remain available, with braking taking priority.",
-    "Preserve the miniature airframe/core, normal flight speeds, enemy markers, career saves/upgrades, both maps, prior releases and live updates."
+    "Remove the large tree beside the sofa and the smaller tree by the piano, including their branches and pots.",
+    "Exclude the removed meshes before building environment collisions, leaving both cleared spaces flyable.",
+    "Preserve the other decorative plants, furniture, Dining Room, V13 rocket boost/turning, career saves and live updates."
   ],
   "files": [
     {
@@ -47,7 +45,7 @@
     {
       "path": "index.html",
       "bytes": 14266,
-      "sha256": "f35549523681a44cfc10b0456276179ba9614109c9673b9b3f1abdb257bf97fc"
+      "sha256": "99fc51d5468252ebefd9fb6d52ce3ac01c8da1d324ccb850a27d6408e7905605"
     },
     {
       "path": "src/aircraft.js",
@@ -132,12 +130,12 @@
     {
       "path": "src/version.js",
       "bytes": 135,
-      "sha256": "83d3b8e3b3aeb5f0c892630551705a4554df89fff63e6790f98eacb663993752"
+      "sha256": "99596be4510ec2c692861294ccc550f9a3c955d8ffcbee1f2976b9e06fc8b871"
     },
     {
       "path": "src/world.js",
-      "bytes": 10595,
-      "sha256": "6cbbc306bc1ec5aab70252d75577cb9e235da0ec3054d79c9e04cd7ec371325e"
+      "bytes": 11117,
+      "sha256": "4f6761dbdd7bbcfb3f32be97b64c7c292787ecd4af8cf6fd4692dce9a195bc6c"
     },
     {
       "path": "styles.css",

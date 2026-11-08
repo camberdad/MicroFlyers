@@ -109,8 +109,18 @@ export async function loadAirfield(scene, onProgress = () => {}, mapId = 'living
 /** Pure normalization/collision setup shared by browser loading and model tests. */
 export function prepareAirfield(room,mapId='living') {
   const map = MAPS[mapId];
+  // Keep the original map normalization even when decorative objects are removed.
   room.updateMatrixWorld(true);
   const sourceBounds = new THREE.Box3().setFromObject(room);
+  if(mapId==='living') {
+    // Clear the sofa-side tree and the crossed-plane piano tree, including pots.
+    // Remove before collider/BVH construction so there are no invisible obstacles.
+    const removed=[];
+    room.traverse(o=>{
+      if(o.isMesh && (/^Tree(?:_Branch\d*)?$/.test(o.name) || ['Tree07_4K004','Tree07_4K005','Pot','Pot001'].includes(o.name))) removed.push(o);
+    });
+    removed.forEach(o=>o.removeFromParent());
+  }
   const size = sourceBounds.getSize(new THREE.Vector3());
   const center = sourceBounds.getCenter(new THREE.Vector3());
   const scale = 120 / Math.max(size.x, size.z);

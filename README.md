@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V13.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V14.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -60,6 +60,8 @@ The new HUD uses a left radar card, top-center compass, upper-right missile-seek
 Left click fires the gun. Right click launches a homing missile toward a living drone ahead within 65 world units and clear line of sight. The HUD shows LOCK READY or the 1.8-second reload countdown. Missiles turn at a limited rate, leave a visible trail, destroy a drone on direct impact, and expire after five seconds. Furniture blocks locks and missiles; a destroyed target is not tracked further. The gun reticle still shows firing direction. Switching away pauses the game.
 
 ## Assets and scale
+
+- V14 removes the two prominent Living Room trees (beside the sofa and by the piano), including their pots. Their meshes are excluded before collision setup, so the cleared areas are flyable. Other small decorative plants and the Dining Room remain.
 
 - V11's player jet is **1:200**, exactly half the length, wingspan and height of V10's 1:100 miniature (`JET_SCALE = 0.204`). This is the game's miniature design ratio; the procedural aircraft has no specified real-world counterpart. Its central collision sphere has radius **0.065 world units**, smaller than the visible wings. Player missiles/projectiles and launch offsets are scaled down to match; the camera distance stays the same so the aircraft appears smaller too.
 - Scenery, boundary and drone contact cause **no hull damage**. Actual triangle surfaces gently separate/slide the core without reducing speed, changing heading or resetting the aircraft. Wings may skim furniture. Enemy projectiles still damage the smaller player core. Box bounds remain a conservative broad phase for weapon occlusion.
