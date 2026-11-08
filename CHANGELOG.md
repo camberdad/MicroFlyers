@@ -2,6 +2,14 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V13 — Held rocket boost, glowing jets and tighter turns
+
+- Change Space from a persistent throttle increase to a held rocket boost, adding 18% speed over the selected normal throttle. Release smoothly returns to normal without changing the throttle setting.
+- Light up twin blue rocket plumes and additive nozzle glow while boosting; turn the effect off on release, pause, focus loss and return to hangar. Scenery still occludes the effect.
+- Increase direct heading turn rate by 12.5%, tightening normal-speed turn radius by about 11% while keeping existing momentum, pitch and bank behavior.
+- Show ROCKET BOOST in the live airspeed instrument and use a modest boost camera widening. Update flight-school instructions; wheel throttle and Shift airbrake remain available, with braking taking priority.
+- Preserve the miniature airframe/core, normal flight speeds, enemy markers, career saves/upgrades, both maps, prior releases and live updates.
+
 ## V12 — Enemy lock circles and offscreen direction arrows
 
 - Track every onscreen enemy plane with a clear amber circle and its contact number/distance.

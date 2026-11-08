@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
 
-**Current release: V12.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V13.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -43,7 +43,7 @@ Clearing a wave saves the next wave/round. Defeat, restarting or returning to th
 | W / S or up / down arrows | Adjust climb / dive; release holds pitch |
 | A / D or left / right arrows | Turn directly left / right; release levels wings |
 | Q / E | Fine left / right rudder adjustment |
-| Space | Raise throttle / afterburner |
+| Space (hold) | Rocket boost: +18% speed and glowing jets; release returns to selected throttle |
 | Shift | Lower throttle and apply airbrake |
 | Mouse wheel | Fine throttle adjustment |
 | Left mouse button (hold) | Fire gun |
@@ -53,7 +53,7 @@ Clearing a wave saves the next wave/round. Defeat, restarting or returning to th
 | F | Fullscreen, where the host permits it |
 | V | Toggle procedural engine and combat audio |
 
-V7 recreates the core behavior of [Toyborne's Arrow controls](https://www.breyes.net/toyborne/en/), independently implemented at the room's scale. Heading responds directly to A/D instead of waiting for bank to build; the aircraft banks into the turn and levels its wings on release. Pitch holds after releasing W/S, with a ±78° limit. Flight controls offers Beginner pitch (default W climbs / S dives), Flight style (S climbs / W dives), and saved sensitivity. Mouse movement never steers. Space raises a persistent throttle lever, Shift lowers it and applies an airbrake, and the wheel adjusts it in 4% steps. Throttle stays where it was on release; engine power spools smoothly. V11 reduces all player flight speeds by 30%: cruise is 5.95 world units/s, minimum speed is 3.15, and afterburner tops out at 13.3. Steering and momentum response stay the same. Left click fires the gun; Space is now exclusively throttle. The chase camera and V6 HUD remain. This adapts the reference's easy flight mode rather than its optional 360-roll or mouse modes; no Toyborne source or assets are distributed.
+V7 recreates the core behavior of [Toyborne's Arrow controls](https://www.breyes.net/toyborne/en/), independently implemented at the room's scale. Heading responds directly to A/D instead of waiting for bank to build; the aircraft banks into the turn and levels its wings on release. Pitch holds after releasing W/S, with a ±78° limit. Flight controls offers Beginner pitch (default W climbs / S dives), Flight style (S climbs / W dives), and saved sensitivity. Mouse movement never steers. V13 makes Space a held rocket boost: speed increases by 18% over the selected normal throttle, and twin blue plumes/glow appear while held. Release smoothly returns to the selected speed without changing throttle. Shift lowers throttle and applies an airbrake (overriding boost); the wheel raises or lowers throttle in 4% steps. Normal cruise remains 5.95 world units/s, minimum 3.15 and maximum wheel throttle 13.3; rocket boost tops out at 15.694 (7.021 at default cruise). Heading turn rate increases from 1.2 to 1.35 radians/s, reducing normal cruise turn radius by about 11% while preserving momentum response. The chase camera and V6 HUD remain. This adapts the reference's easy flight mode rather than its optional 360-roll or mouse modes; no Toyborne source or assets are distributed.
 
 The new HUD uses a left radar card, top-center compass, upper-right missile-seeker strip, lower-left airspeed/altitude/bank/throttle and lower-right gun/hull instruments. Circular locks, secondary contacts, gun hit/activity meters, large SPLASH ONE callouts and a real hostile-projectile proximity alert are generated in CSS/canvas. All telemetry is live and keeps the room's miniature units. MicroFlyers branding and the supplied room remain; the reference MP4 is not uploaded or embedded.
 

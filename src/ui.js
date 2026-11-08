@@ -39,7 +39,7 @@ export function updateHUD(state, combat, camera, input, world, elapsed) {
   $('speed').textContent = String(Math.round(state.velocity.length() / world.scale)).padStart(3, '0');
   $('speed-bar').style.width = `${state.speed / FLIGHT.boostSpeed * 100}%`;
   $('altitude').innerHTML = `${(state.position.y / world.scale / 100).toFixed(1)}<small> M</small>`;
-  $('flight-mode').textContent = input.brake ? 'AIRBRAKE' : state.engineThrottle>.85 ? 'AFTERBURNER' : state.throttle<.25 ? 'IDLE' : 'CRUISE';
+  $('flight-mode').textContent = input.brake ? 'AIRBRAKE' : state.boosting ? 'ROCKET BOOST' : state.engineThrottle>.85 ? 'HIGH THROTTLE' : state.throttle<.25 ? 'IDLE' : 'CRUISE';
   const healthPercent=state.health/(state.maxHealth??100)*100;
   $('health-label').textContent = `${Math.ceil(healthPercent)}%`;
   $('health-bar').style.width = `${healthPercent}%`;

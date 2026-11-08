@@ -1,6 +1,19 @@
 import * as THREE from 'three';
 import { JET_SCALE } from './maps.js';
 
+// Small procedural radial texture: additive glow needs no external image asset.
+function exhaustGlowTexture() {
+  const size=32, data=new Uint8Array(size*size*4);
+  for(let y=0;y<size;y++) for(let x=0;x<size;x++) {
+    const radius=Math.hypot((x+.5-size/2)/(size/2),(y+.5-size/2)/(size/2));
+    const offset=(y*size+x)*4;
+    data[offset]=100; data[offset+1]=205; data[offset+2]=255;
+    data[offset+3]=Math.round(255*Math.max(0,1-radius)**2);
+  }
+  const texture=new THREE.DataTexture(data,size,size);texture.needsUpdate=true;
+  return texture;
+}
+
 function shapeMesh(points, material, thickness = .045) {
   const shape = new THREE.Shape();
   points.forEach(([x, z], i) => i ? shape.lineTo(x, -z) : shape.moveTo(x, -z));
@@ -42,6 +55,14 @@ export function createJet(enemy = false) {
     flame.rotation.x = Math.PI / 2; flame.position.set(x, -.035, .74); exhaust.add(flame);
   }
   jet.add(exhaust); jet.userData.exhaust = exhaust;
+  if(!enemy) {
+    const halos=new THREE.Group();halos.visible=false;
+    const material=new THREE.SpriteMaterial({map:exhaustGlowTexture(),blending:THREE.AdditiveBlending,depthWrite:false,toneMapped:false});
+    for(const x of [-.07,.07]) {
+      const halo=new THREE.Sprite(material);halo.position.set(x,-.035,.69);halo.scale.set(.66,.66,1);halos.add(halo);
+    }
+    jet.add(halos);jet.userData.boostGlow=halos;
+  }
   const navMaterial = new THREE.MeshBasicMaterial({ color: enemy ? 0xff6a46 : 0xddff9b });
   for (const x of [-.88, .88]) {
     const light = new THREE.Mesh(new THREE.SphereGeometry(.026, 6, 4), navMaterial);
@@ -50,4 +71,18 @@ export function createJet(enemy = false) {
   jet.scale.setScalar(enemy ? .68 : JET_SCALE);
   jet.traverse(o => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
   return jet;
+}
+
+/** Held boost brightens both nozzles immediately; flames remain scenery-occluded. */
+export function updateJetExhaust(jet,boosting,throttle=.5,time=0) {
+  const exhaust=jet.userData.exhaust;
+  const pulse=1+Math.sin(time*42)*.05;
+  const length=boosting ? .88*pulse : .36*(.75+throttle*.3);
+  exhaust.scale.set(1,1,1);
+  for(const flame of exhaust.children) {
+    flame.scale.set(boosting?1.45:1,length/.36,boosting?1.45:1);
+    flame.position.z=.58+length/2;
+    flame.material.color.setHex(boosting?0x82e8ff:0x9cdaff);
+  }
+  if(jet.userData.boostGlow) jet.userData.boostGlow.visible=boosting;
 }

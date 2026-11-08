@@ -13,10 +13,12 @@ test('neutral flight maintains cruise speed and travels along the nose', () => {
   assert.ok(Math.abs(state.position.z + 59.5) < .001);
   assert.equal(state.position.y, 0); assert.equal(state.position.x, 0);
 });
-test('afterburner accelerates; prolonged braking preserves minimum airspeed', () => {
+test('held rocket boost is modest, preserves throttle, and airbrake takes priority', () => {
   const state = createFlightState(); fly(state, { ...neutral, boost: true }, 12);
-  assert.ok(state.speed > 13.29 && state.speed <= FLIGHT.boostSpeed);
+  assert.ok(Math.abs(state.speed-FLIGHT.cruiseSpeed*1.18)<.001);
+  assert.equal(state.throttle,.5); assert.equal(state.boosting,true);
   fly(state, { ...neutral, brake: true, boost: true }, 20);
+  assert.equal(state.boosting,false);
   assert.ok(state.speed >= FLIGHT.minSpeed && state.speed < FLIGHT.minSpeed + .001);
   assert.ok(state.velocity.length() >= FLIGHT.minSpeed - 1e-9);
 });
@@ -96,9 +98,24 @@ test('wing leveling and pitch hold are consistent at different frame rates', () 
   assert.ok(Math.abs(fast.currentRoll - -.2 * Math.exp(-flightConfig.bankResponse*2)) < 1e-9);
 });
 
-test('throttle holds on release and the engine spools toward the selected speed', () => {
+test('rocket release returns smoothly to wheel-selected throttle at all power settings', () => {
+  for(const throttle of [0,.5,.85,1]) {
+    const state=createFlightState();adjustThrottle(state,throttle-.5);
+    fly(state,neutral,10);
+    const normal=state.speed;
+    fly(state,{...neutral,boost:true},8);
+    assert.ok(Math.abs(state.speed/normal-1.18)<.001);
+    assert.ok(state.speed<=FLIGHT.boostSpeed);assert.equal(state.throttle,throttle);
+    const boosted=state.speed;updateFlight(state,neutral,1/120);
+    assert.equal(state.boosting,false);assert.ok(state.speed<boosted && state.speed>normal);
+    fly(state,neutral,8);
+    assert.ok(Math.abs(state.speed-throttleToSpeed(throttle))<.001);
+  }
+});
+
+test('wheel throttle holds and brake lowers it without boost sticking', () => {
   const state = createFlightState();
-  fly(state,{...neutral,boost:true},.5);
+  adjustThrottle(state,.35);fly(state,neutral,.5);
   assert.ok(Math.abs(state.throttle-.85) < 1e-9);
   fly(state,neutral,3);
   assert.ok(Math.abs(state.throttle-.85) < 1e-9);
@@ -108,6 +125,13 @@ test('throttle holds on release and the engine spools toward the selected speed'
   const brakedSpeed = state.speed;
   fly(state,neutral,3);
   assert.ok(Math.abs(state.throttle-.65) < 1e-9 && state.speed > brakedSpeed);
+});
+
+test('turning radius is slightly tighter than V12 at the same cruise speed', () => {
+  const state=createFlightState();fly(state,{...neutral,roll:1},2);
+  const radius=FLIGHT.cruiseSpeed/Math.abs(state.angular.y), previousRadius=FLIGHT.cruiseSpeed/1.2;
+  assert.ok(radius<previousRadius*.9 && radius>previousRadius*.85);
+  assert.equal(state.speed,FLIGHT.cruiseSpeed);
 });
 
 test('fine throttle adjustments persist and clamp to safe limits', () => {

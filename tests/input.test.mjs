@@ -13,7 +13,7 @@ test('opposite keys cancel and unrelated keys do not steer', () => {
   const idle = readKeyboardFlight(new Set(['KeyM']),{});
   assert.equal(idle.pitch,0); assert.equal(idle.roll,0); assert.equal(idle.yaw,0);
 });
-test('Space raises throttle and either Shift brakes without steering', () => {
+test('Space requests held rocket boost and either Shift brakes without steering', () => {
   const throttle = readKeyboardFlight(new Set(['Space']),{});
   assert.equal(throttle.boost,true); assert.equal(throttle.brake,false);
   for (const key of ['ShiftLeft','ShiftRight']) {

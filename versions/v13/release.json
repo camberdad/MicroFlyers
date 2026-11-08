@@ -1,0 +1,204 @@
+{
+  "version": "V13",
+  "versionNumber": 13,
+  "assetVersion": "v13-4caff17241ff",
+  "publishedAtUtc": "2026-11-08T04:36:49.863Z",
+  "gameUrl": "https://camberdad.github.io/MicroFlyers/versions/v13/",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v13/",
+  "description": "Held rocket boost, glowing jets and tighter turns",
+  "changes": [
+    "Change Space from a persistent throttle increase to a held rocket boost, adding 18% speed over the selected normal throttle. Release smoothly returns to normal without changing the throttle setting.",
+    "Light up twin blue rocket plumes and additive nozzle glow while boosting; turn the effect off on release, pause, focus loss and return to hangar. Scenery still occludes the effect.",
+    "Increase direct heading turn rate by 12.5%, tightening normal-speed turn radius by about 11% while keeping existing momentum, pitch and bank behavior.",
+    "Show ROCKET BOOST in the live airspeed instrument and use a modest boost camera widening. Update flight-school instructions; wheel throttle and Shift airbrake remain available, with braking taking priority.",
+    "Preserve the miniature airframe/core, normal flight speeds, enemy markers, career saves/upgrades, both maps, prior releases and live updates."
+  ],
+  "files": [
+    {
+      "path": ".nojekyll",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "assets/InteriorTest.fbx",
+      "bytes": 1384188,
+      "sha256": "383a2269f797231bd38d5ab04d1bab685c0526b43b2cb920442d91b85bd96359"
+    },
+    {
+      "path": "assets/dining-room-info.json",
+      "bytes": 56445,
+      "sha256": "787d2565b26d24cccf74ec49b946ee567e82a380024864a6f1d789379e02e051"
+    },
+    {
+      "path": "assets/dining-room.glb",
+      "bytes": 5081352,
+      "sha256": "aa69667624c95314a5dffe2a8c8d988e0152977b556e7784925745b0d6820a73"
+    },
+    {
+      "path": "assets/favicon.svg",
+      "bytes": 205,
+      "sha256": "e93e179c557b2f66492916cbb9e46db71ba590e9c40daa528f4f7f981fc03eba"
+    },
+    {
+      "path": "assets/model-inspection.json",
+      "bytes": 95781,
+      "sha256": "150c8041e1eaf321990a3f9031520884152381a2ff92b77ba326093ab25adbb7"
+    },
+    {
+      "path": "index.html",
+      "bytes": 14266,
+      "sha256": "f35549523681a44cfc10b0456276179ba9614109c9673b9b3f1abdb257bf97fc"
+    },
+    {
+      "path": "src/aircraft.js",
+      "bytes": 4817,
+      "sha256": "afd2ac3b563bb646125893d7b9ec038282f64fc7b43698bf690dca26770260bb"
+    },
+    {
+      "path": "src/audio.js",
+      "bytes": 2139,
+      "sha256": "35f73074dac7a76809a9d7bab9cb26b6eb326b83dd03f02faa75408973d53b29"
+    },
+    {
+      "path": "src/career.js",
+      "bytes": 2801,
+      "sha256": "f4093056db4e7e1bd050b39129ee09b23c16be322140f7252a792681736acbee"
+    },
+    {
+      "path": "src/combat.js",
+      "bytes": 16503,
+      "sha256": "bca25284dbd5c9241e196db852210df72056a034e4000ba747be8681e5b4114a"
+    },
+    {
+      "path": "src/flight.js",
+      "bytes": 5690,
+      "sha256": "4840bb2ad358b82454cb29731afd3b2957eea761d5c4061807cda2e03b083a4a"
+    },
+    {
+      "path": "src/hud-math.js",
+      "bytes": 2641,
+      "sha256": "befaf4e69de00d2ddc4bf981d2079b202b718212162bfd2cfcfd91dfd8697bf1"
+    },
+    {
+      "path": "src/hud.css",
+      "bytes": 19273,
+      "sha256": "a43d8ad9c4e26d0f1355e0ca89400f39c8410343f4d83ececb64555ccc241235"
+    },
+    {
+      "path": "src/input.js",
+      "bytes": 737,
+      "sha256": "c6d2916386772402e476a4de21d998d2dd0561c54b81d460fce01cb7d74c425e"
+    },
+    {
+      "path": "src/main.js",
+      "bytes": 26064,
+      "sha256": "eafe781b464174be7994ab48a7f6f45b1ee465912e9f50b28b227226f6dce8e9"
+    },
+    {
+      "path": "src/maps.js",
+      "bytes": 659,
+      "sha256": "1aae673f55bd2b40e34abfeb6790e0999a0f3a2748b18e1c4300293ecef86d12"
+    },
+    {
+      "path": "src/scenery-collision.js",
+      "bytes": 2600,
+      "sha256": "62f0186418556a41b4dcdceeaab3029bfdc4505aec45a9588a09f1fbab71e250"
+    },
+    {
+      "path": "src/spawns.js",
+      "bytes": 2780,
+      "sha256": "a17ae317fd3d4020bd799889155caaac399fded644342279887164cb0b015488"
+    },
+    {
+      "path": "src/surface-index.js",
+      "bytes": 3145,
+      "sha256": "d63b39c79ee446445c796cc5e285e8c7d4dd6562f1ec0a396e00dc8bd0439228"
+    },
+    {
+      "path": "src/ui.js",
+      "bytes": 9559,
+      "sha256": "f6805e24615d81c5b11fbdc1c13c4ce8e14f42a8fea690d422e14c5e6b9a87c1"
+    },
+    {
+      "path": "src/update-policy.js",
+      "bytes": 470,
+      "sha256": "35e4d61be98ee8704b5b079f281c880c122aed2a7c80128035f106eddc4a1733"
+    },
+    {
+      "path": "src/updates.js",
+      "bytes": 5223,
+      "sha256": "8071b57a34571512027a6c5319f8d0a3db8ec94606f0343915ab3127b6d9116a"
+    },
+    {
+      "path": "src/version.js",
+      "bytes": 135,
+      "sha256": "83d3b8e3b3aeb5f0c892630551705a4554df89fff63e6790f98eacb663993752"
+    },
+    {
+      "path": "src/world.js",
+      "bytes": 10595,
+      "sha256": "6cbbc306bc1ec5aab70252d75577cb9e235da0ec3054d79c9e04cd7ec371325e"
+    },
+    {
+      "path": "styles.css",
+      "bytes": 13998,
+      "sha256": "b6c024bd6bfceaa10a0b513a92a4ea841e8eaa0d40490bf141b9bb1ee297968d"
+    },
+    {
+      "path": "vendor/three/LICENSE",
+      "bytes": 1081,
+      "sha256": "bfe119ea4fd413f5f7ca3fcd63adb0c4a073ed39daa2fe7d3e6b769e21272601"
+    },
+    {
+      "path": "vendor/three/build/three.core.js",
+      "bytes": 1403455,
+      "sha256": "eb077d2417f61d3e6d9264c317cabc4ea35769ed6b0ab533067292a550784c20"
+    },
+    {
+      "path": "vendor/three/build/three.module.js",
+      "bytes": 603113,
+      "sha256": "c8211c69345d2e9949dc7a8ac969380497aa0600a5a8ac6a459c8cd02dd9cb8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSCurve.js",
+      "bytes": 3888,
+      "sha256": "bef2607618a7778455e71a1f0bd206951c382d313e2e245808cc7d3533d60fb6"
+    },
+    {
+      "path": "vendor/three/examples/jsm/curves/NURBSUtils.js",
+      "bytes": 10802,
+      "sha256": "c6bd7c4137d585098923f189687898ea3e8762ea3ecbe255d749a56353894379"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.LICENSE",
+      "bytes": 1069,
+      "sha256": "805f6cb28bb8b6d3a0badd83c93bccd9671fa01a3b4b92b7042b0743325ac243"
+    },
+    {
+      "path": "vendor/three/examples/jsm/libs/fflate.module.js",
+      "bytes": 89384,
+      "sha256": "209a4412eb48ce609edb4391992a792ffcc3983d30ee7e2b0b89a8c470f3cd8a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/loaders/FBXLoader.js",
+      "bytes": 104876,
+      "sha256": "d97724a6bea228003e02c64651d969a9a62003a00be314ef6995c390116f547d"
+    },
+    {
+      "path": "vendor/three/examples/jsm/loaders/GLTFLoader.js",
+      "bytes": 114739,
+      "sha256": "67ac5551fdafa6e349bd80c8f8e5e39c136d6b2fb1ad647db9abb21dc86f9e4a"
+    },
+    {
+      "path": "vendor/three/examples/jsm/math/OBB.js",
+      "bytes": 13862,
+      "sha256": "3297db79bdf0a33525ef06fe7478fd921dcffb7699df1059e189bbdf2c0fae58"
+    },
+    {
+      "path": "vendor/three/examples/jsm/utils/BufferGeometryUtils.js",
+      "bytes": 35539,
+      "sha256": "fda7e946b8e0b5ab39b779206589e7a1079a22eb24efb89d7223e03fdfb1f751"
+    }
+  ],
+  "currentGameUrl": "https://camberdad.github.io/MicroFlyers/"
+}

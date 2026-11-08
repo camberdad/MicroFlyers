@@ -6,20 +6,20 @@ export const flightConfig = Object.freeze({
   forwardSpeed: 5.95,
   pitchSpeed: 1.04,
   rollSpeed: 2.4,
-  yawSpeed: 1.2,
+  yawSpeed: 1.35,
   inputResponse: 8,
   releaseResponse: 12,
   bankResponse: 6,
   bankGravity: 3.3,
   maxRoll: Math.PI*85/180,
   maxPitch: Math.PI*78/180,
-  throttleUpRate: .7,
   throttleDownRate: .8,
   engineResponse: 3,
   minSpeed: 3.15,
-  boostSpeed: 13.3,
+  maxThrottleSpeed: 13.3,
+  rocketMultiplier: 1.18,
 });
-export const FLIGHT = Object.freeze({ minSpeed: flightConfig.minSpeed, cruiseSpeed: flightConfig.forwardSpeed, boostSpeed: flightConfig.boostSpeed, maxHealth: 100 });
+export const FLIGHT = Object.freeze({ minSpeed: flightConfig.minSpeed, cruiseSpeed: flightConfig.forwardSpeed, maxThrottleSpeed: flightConfig.maxThrottleSpeed, boostSpeed: flightConfig.maxThrottleSpeed*flightConfig.rocketMultiplier, maxHealth: 100 });
 const forward = new THREE.Vector3();
 const desiredVelocity = new THREE.Vector3();
 const attitude = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -31,14 +31,14 @@ export function createFlightState(position = new THREE.Vector3(-10, 16, 42)) {
     angular: new THREE.Vector3(), speed: FLIGHT.cruiseSpeed,
     currentPitch: 0, currentRoll: 0,
     pitchControl:0, turnControl:0, throttle:.5, engineThrottle:.5,
-    health: FLIGHT.maxHealth, invulnerable: 0,
+    boosting: false, health: FLIGHT.maxHealth, invulnerable: 0,
   };
 }
 
 export function throttleToSpeed(throttle) {
   const value = THREE.MathUtils.clamp(throttle,0,1);
   return value <= .5 ? THREE.MathUtils.lerp(FLIGHT.minSpeed,FLIGHT.cruiseSpeed,value*2)
-    : THREE.MathUtils.lerp(FLIGHT.cruiseSpeed,FLIGHT.boostSpeed,(value-.5)*2);
+    : THREE.MathUtils.lerp(FLIGHT.cruiseSpeed,FLIGHT.maxThrottleSpeed,(value-.5)*2);
 }
 
 export function adjustThrottle(state,amount) {
@@ -65,11 +65,12 @@ export function updateFlight(state, input, dt) {
   attitude.set(state.currentPitch, attitude.y + yawRate * dt, state.currentRoll, 'YXZ');
   state.quaternion.setFromEuler(attitude).normalize();
   state.angular.set((state.currentPitch - oldPitch) / dt, yawRate, (state.currentRoll - oldRoll) / dt);
-  // Persistent throttle lever with engine spool. Space raises it, Shift lowers
-  // it and deploys the airbrake. The lever stays where it was on key release.
-  adjustThrottle(state,((input.boost?flightConfig.throttleUpRate:0)-(input.brake?flightConfig.throttleDownRate:0))*dt);
+  // Space is a held rocket boost, independent of the wheel's saved throttle.
+  // Airbrake takes priority; release restores normal speed with gentle momentum.
+  state.boosting = Boolean(input.boost && !input.brake);
+  adjustThrottle(state,-(input.brake?flightConfig.throttleDownRate:0)*dt);
   state.engineThrottle = THREE.MathUtils.lerp(state.engineThrottle,state.throttle,1-Math.exp(-flightConfig.engineResponse*dt));
-  const targetSpeed = input.brake ? FLIGHT.minSpeed : throttleToSpeed(state.engineThrottle);
+  const targetSpeed = input.brake ? FLIGHT.minSpeed : throttleToSpeed(state.engineThrottle)*(state.boosting?flightConfig.rocketMultiplier:1);
   state.speed = THREE.MathUtils.lerp(state.speed,targetSpeed,1-Math.exp(-(input.brake?4:1.8)*dt));
   state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed);
   forward.set(0, 0, -1).applyQuaternion(state.quaternion);

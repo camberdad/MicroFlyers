@@ -13,6 +13,7 @@ function worldFor(root) {
 }
 test('V11 jet is exactly half the V10 dimensions and retains a proportional central core',()=>{
   const jet=createJet();assert.ok(Math.abs(jet.scale.x-.204)<1e-12);assert.equal(JET_SCALE,jet.scale.x);
+  jet.remove(jet.userData.boostGlow); // The transparent boost halo is an effect, not the airframe.
   const size=new THREE.Box3().setFromObject(jet).getSize(new THREE.Vector3());
   const previousSize=new THREE.Box3().setFromObject(createPreviousJet()).getSize(new THREE.Vector3());
   for(const axis of ['x','y','z'])assert.ok(Math.abs(size[axis]*2-previousSize[axis])<1e-9);

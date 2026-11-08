@@ -1,18 +1,17 @@
 {
-  "version": "V12",
-  "versionNumber": 12,
-  "assetVersion": "v12-814624bbc414",
-  "publishedAtUtc": "2026-11-07T06:45:58.888Z",
+  "version": "V13",
+  "versionNumber": 13,
+  "assetVersion": "v13-4caff17241ff",
+  "publishedAtUtc": "2026-11-08T04:36:49.863Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v12/",
-  "description": "Enemy lock circles and offscreen direction arrows",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v13/",
+  "description": "Held rocket boost, glowing jets and tighter turns",
   "changes": [
-    "Track every onscreen enemy plane with a clear amber circle and its contact number/distance.",
-    "Show a larger cyan double circle around the actual missile target, with LOCKED · RMB FIRE or TRACKING · REARMING status tied to the existing line-of-sight and reload logic.",
-    "Add screen-edge arrows for every live enemy outside the camera view. Include contact number, distance and a BEHIND label for rear contacts; highlight the locked target's arrow.",
-    "Calculate directions in chase-camera space so left/right bearings stay correct behind the aircraft, with a right-turn hint for directly rearward contacts.",
-    "Spread clustered arrows along their edge, keep labels inside the viewport and remove indicators immediately when enemies are destroyed or Free Fly begins.",
-    "Preserve aircraft size/speed, flight controls, randomized waves, GP/upgrades, saves, both maps and live updates."
+    "Change Space from a persistent throttle increase to a held rocket boost, adding 18% speed over the selected normal throttle. Release smoothly returns to normal without changing the throttle setting.",
+    "Light up twin blue rocket plumes and additive nozzle glow while boosting; turn the effect off on release, pause, focus loss and return to hangar. Scenery still occludes the effect.",
+    "Increase direct heading turn rate by 12.5%, tightening normal-speed turn radius by about 11% while keeping existing momentum, pitch and bank behavior.",
+    "Show ROCKET BOOST in the live airspeed instrument and use a modest boost camera widening. Update flight-school instructions; wheel throttle and Shift airbrake remain available, with braking taking priority.",
+    "Preserve the miniature airframe/core, normal flight speeds, enemy markers, career saves/upgrades, both maps, prior releases and live updates."
   ],
   "files": [
     {
@@ -47,13 +46,13 @@
     },
     {
       "path": "index.html",
-      "bytes": 14144,
-      "sha256": "891fc3d2cac38568b07a8c0c0ae7d4c781ae12d621ab65a0ea4ec5f0c2b76241"
+      "bytes": 14266,
+      "sha256": "f35549523681a44cfc10b0456276179ba9614109c9673b9b3f1abdb257bf97fc"
     },
     {
       "path": "src/aircraft.js",
-      "bytes": 3249,
-      "sha256": "85acee84b3d72aeabddc89d8be928f3b0a21d5800ad1251b3a3581c496eb9c23"
+      "bytes": 4817,
+      "sha256": "afd2ac3b563bb646125893d7b9ec038282f64fc7b43698bf690dca26770260bb"
     },
     {
       "path": "src/audio.js",
@@ -72,8 +71,8 @@
     },
     {
       "path": "src/flight.js",
-      "bytes": 5509,
-      "sha256": "b9ee49ded07f741639831066c0c06d3187e139da629c605ddc9212f5ac715d1d"
+      "bytes": 5690,
+      "sha256": "4840bb2ad358b82454cb29731afd3b2957eea761d5c4061807cda2e03b083a4a"
     },
     {
       "path": "src/hud-math.js",
@@ -92,8 +91,8 @@
     },
     {
       "path": "src/main.js",
-      "bytes": 25991,
-      "sha256": "e1989a887b9df08afcbbd9b2b1260fe929d8e32232d84f8cbf221b2eb733dc58"
+      "bytes": 26064,
+      "sha256": "eafe781b464174be7994ab48a7f6f45b1ee465912e9f50b28b227226f6dce8e9"
     },
     {
       "path": "src/maps.js",
@@ -117,8 +116,8 @@
     },
     {
       "path": "src/ui.js",
-      "bytes": 9523,
-      "sha256": "dbb6cef51fe9c6b28f2452e87186c6764d8621359dad85e903c7dcbff04c132c"
+      "bytes": 9559,
+      "sha256": "f6805e24615d81c5b11fbdc1c13c4ce8e14f42a8fea690d422e14c5e6b9a87c1"
     },
     {
       "path": "src/update-policy.js",
@@ -133,7 +132,7 @@
     {
       "path": "src/version.js",
       "bytes": 135,
-      "sha256": "1c8a11e6cf25dfc6ba42c9fb62d2c9bb9c4863ed9cf499b84f49cbcf5301e26f"
+      "sha256": "83d3b8e3b3aeb5f0c892630551705a4554df89fff63e6790f98eacb663993752"
     },
     {
       "path": "src/world.js",

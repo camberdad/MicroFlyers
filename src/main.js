@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { initWorld, loadAirfield, isSafePosition } from './world.js';
-import { createJet } from './aircraft.js';
+import { createJet, updateJetExhaust } from './aircraft.js';
 import { createFlightState, updateFlight, forwardVector,adjustThrottle } from './flight.js';
 import { readKeyboardFlight } from './input.js';
 import { Combat } from './combat.js';
@@ -182,6 +182,8 @@ function returnToHangar() {
 
 function resetInput() {
   keys.clear(); mouseFire = false; missileRequested = false;
+  player.boosting = false;
+  if (aircraft) updateJetExhaust(aircraft,false,player.engineThrottle);
 }
 
 function launch() {
@@ -209,7 +211,7 @@ function launch() {
   $('career-hud').classList.toggle('hidden',!sortie);
   $('mission-progress').replaceChildren(...Array.from({length:sortie?.config.count??0},()=>document.createElement('i')));
   aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion); aircraft.visible = true;
-  aircraft.userData.exhaust.scale.z = .75;
+  updateJetExhaust(aircraft,false,player.engineThrottle);
   camera.position.copy(player.position).addScaledVector(forwardVector(player),-3.2);camera.position.y+=.9;
   camera.lookAt(player.position.clone().addScaledVector(forwardVector(player),9));camera.updateMatrixWorld();
   setMode(sortie?'playing':'exploring');
@@ -304,7 +306,7 @@ function updateCamera(dt) {
   cameraRotation.lookAt(camera.position, cameraTarget, cameraUp);
   cameraOrientation.setFromRotationMatrix(cameraRotation);
   camera.quaternion.slerp(cameraOrientation, 1 - Math.exp(-6 * dt));
-  const targetFov = player.engineThrottle>.85 && !input.brake ? 72 : 64;
+  const targetFov = player.boosting ? 68 : 64;
   camera.fov = THREE.MathUtils.lerp(camera.fov, targetFov, 1 - Math.exp(-3 * dt));
   camera.updateProjectionMatrix(); camera.updateMatrixWorld();
 }
@@ -330,7 +332,7 @@ function animate(timestamp) {
     }
     aircraft.position.copy(player.position); aircraft.quaternion.copy(player.quaternion);
     aircraft.visible = !player.invulnerable || Math.sin(simulationTime * 35) > -.3;
-    aircraft.userData.exhaust.scale.z = player.engineThrottle>.85 && !input.brake ? 2 : .75+player.engineThrottle*.3;
+    updateJetExhaust(aircraft,player.boosting,player.engineThrottle,simulationTime);
     updateCamera(dt);
     hudAccumulator += dt;
     if (hudAccumulator > 1 / 30) { renderFlightHUD(); hudAccumulator = 0; }
