@@ -1,8 +1,8 @@
 # MicroFlyers
 
-Small jet. Big room. A browser-based Three.js dogfighting game with two supplied interior airfields: **InteriorTest.fbx** and **room.obj** (prepared as a compact GLB).
+Small jet. Big room. A browser-based Three.js flying and dogfighting game with six interior airfields: two supplied rooms (**InteriorTest.fbx** and **room.obj**, prepared as a compact GLB) and four code-built rooms, plus five game modes, local high scores and a rank/unlock system.
 
-**Current release: V14.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V15.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -23,6 +23,28 @@ Choose **01 · The Living Room** or **02 · The Dining Room** in the hangar befo
 On Windows, you can also double-click **Start-MicroFlyers.cmd**. It uses an installed Node.js or this computer's bundled Codex Node.js runtime. Leave its terminal open while playing.
 
 The interface adapts to smaller screens, but flight is designed for a desktop keyboard and mouse.
+
+## Modes, rooms and progression (V15)
+
+| Mode | What it is | Unlock |
+| --- | --- | --- |
+| Free Fly | Peaceful exploration, no enemies or damage | Start |
+| Career | 30 rounds / 60 waves of enemy planes, GP per kill | Start |
+| Ring Race | Fly through glowing rings in order against the clock. Three courses per room (Sunday Cruise 8 rings, Weekend Racer 12, Rooftop Pro 16) with gold/silver/bronze medals | Start |
+| Balloon Blitz | 75-second score attack. Red 100, blue 150, gold 500, green +5 s. Chain pops within 3 s for up to ×5 | Rank 2 |
+| Survival | Endless waves that grow in size and skill; an ace every fifth wave; power-ups drop from wrecks | Rank 3 |
+
+**Rooms.** 01 The Living Room and 02 The Dining Room are open from the start. The code-built rooms unlock by rank: 03 The Kitchen (rank 2: island, pendant lights, ceiling fan), 04 The Kids' Bedroom (rank 3: bunk beds, open cubbies, toy castle gate, planet mobile), 05 The Garage (rank 4: fly under the car, open steel racks, basketball hoop) and 06 The Grand Library (rank 6: bookcase aisles with a shortcut gap, chandeliers, fireplace). Sunset lighting unlocks at rank 3 and night at rank 5; night adds a soft headlight that follows the jet.
+
+**Enemies and power-ups.** Interceptors are fast and fragile, gunships are slow and armored, and aces are bosses with a health bar. Career keeps rounds 1–5 as plain fighters; interceptors join from round 6, gunships from round 12, and an ace guards the final wave of rounds 10, 20 and 30. Destroyed enemies in Survival and Career (round 3+) can drop a repair kit (+35 hull), rapid fire, triple shot, a 6-second shield or an instant missile reload. Fly into a power-up to collect it.
+
+**XP, ranks and unlocks.** Every mode earns XP (kills, waves, rings, medals, Blitz points and flight time). Ten ranks run from Cadet to Sky Marshal and unlock rooms, modes, the Engine and Missile rack upgrade tracks, lighting presets and seven paint schemes (Gold Ace also unlocks by finishing Career). The Records logbook shows the full unlock roadmap.
+
+**Upgrades.** Shots and Armor (Career's original tracks) are joined by Engine (+4% top speed and +3% turn rate per level) and Missile rack (faster reload, harder tracking, longer lock range). GP from Career, Survival and Blitz shares one wallet. Paint schemes are equipped in the same hangar.
+
+**High scores.** Survival and Blitz keep a top-five score table per room; every Ring Race course keeps its five best times and your best medal. Results show a NEW HIGH SCORE badge and the table. Set your callsign in Records. Scores are local to this browser (no accounts or online leaderboard). New progress saves under `microflyers.pilot.v1`; the V9 career save `microflyers.career.v1` is unchanged.
+
+**Fair courses.** Ring courses are generated deterministically per room and course, so best times stay comparable. Each course is flown end to end by a built-in autopilot using the real flight model and scenery contact before it is offered, and its medal times come from that run.
 
 ## Fly
 
@@ -89,7 +111,12 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/flight.js` | Quaternion flight, pitch/roll/yaw, minimum speed, boost/brake, momentum, swept segment helper |
 | `src/aircraft.js` | Procedural micro jet model |
 | `src/combat.js` | Configurable enemy-plane waves/patrols, weapon loadouts, homing missiles, line of sight, swept hits and damage |
-| `src/career.js` | Thirty-round difficulty curve, wave progression, GP rewards, upgrade prices/loadouts and validated browser saves |
+| `src/career.js` | Thirty-round difficulty curve, wave progression, enemy-type mix, GP rewards, upgrade prices/loadouts and validated browser saves |
+| `src/modes.js` | Mode catalog, enemy archetypes, Survival waves, Blitz balloons, combos, Ring Race course generation, medals |
+| `src/progress.js` | Pilot XP/ranks, unlock table, Engine/Missile upgrades, paints, lifetime stats and local high-score tables |
+| `src/rooms.js` | Code-built Kitchen, Kids' Bedroom, Garage and Grand Library rooms |
+| `src/pickups.js` | Power-up drops and the visible Ring Race course |
+| `src/autopilot.js` | Autopilot that proves each ring course is completable and sets its medal times |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
 | `src/hud.css`, `src/hud-math.js` | Footage-inspired HUD layout, compass calculations and cardinal directions |
 | `src/audio.js` | Optional synthesized audio, started from a user gesture |

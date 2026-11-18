@@ -3,6 +3,15 @@ import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { SurfaceIndex } from './surface-index.js';
 import { MAPS } from './maps.js';
+import { buildRoom } from './rooms.js';
+
+const lights = {};
+/** Day / sunset / night presets. Night keeps a soft fill so furniture stays readable. */
+export const LIGHTING = Object.freeze({
+  day:Object.freeze({ambient:[0xfff5df,1.1],hemi:[0xdcebf0,0x75634c,1.5],sun:[0xffefcf,3.3],fill:[0xd2e8eb,1.2],exposure:1.05,tint:null,headlight:0}),
+  sunset:Object.freeze({ambient:[0xffd2a8,.75],hemi:[0xffc69a,0x5a4060,1.0],sun:[0xff9d5c,2.8],fill:[0x9fb6ff,.7],exposure:1.0,tint:0xe7a77c,headlight:.4}),
+  night:Object.freeze({ambient:[0x8aa0ff,.32],hemi:[0x5a6aa8,0x1a1420,.45],sun:[0x9fb4ff,.55],fill:[0x6f7fd0,.35],exposure:1.15,tint:0x0b1020,headlight:2.2}),
+});
 
 const textureCache = new Map();
 const materialCache = new Map();
@@ -70,16 +79,34 @@ function roomMaterial(original) {
 export function initWorld(scene, renderer) {
   scene.background = new THREE.Color(0xd6d9ce);
   scene.fog = new THREE.Fog(0xd6d9ce, 85, 180);
-  scene.add(new THREE.AmbientLight(0xfff5df, 1.1));
-  scene.add(new THREE.HemisphereLight(0xdcebf0, 0x75634c, 1.5));
+  lights.ambient = new THREE.AmbientLight(0xfff5df, 1.1); scene.add(lights.ambient);
+  lights.hemi = new THREE.HemisphereLight(0xdcebf0, 0x75634c, 1.5); scene.add(lights.hemi);
   const sun = new THREE.DirectionalLight(0xffefcf, 3.3);
   sun.position.set(-27, 38, 19); sun.target.position.set(5, 0, -15);
   sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048);
   Object.assign(sun.shadow.camera, { left: -65, right: 65, top: 65, bottom: -65, near: .5, far: 145 });
   sun.shadow.bias = -.0002; sun.shadow.normalBias = .035;
-  scene.add(sun, sun.target);
-  const fill = new THREE.DirectionalLight(0xd2e8eb, 1.2); fill.position.set(20, 20, -35); scene.add(fill);
+  scene.add(sun, sun.target); lights.sun = sun;
+  const fill = new THREE.DirectionalLight(0xd2e8eb, 1.2); fill.position.set(20, 20, -35); scene.add(fill); lights.fill = fill;
+  lights.headlight = new THREE.PointLight(0xdfe9ff, 0, 14, 1.6); scene.add(lights.headlight);
+  lights.renderer = renderer; lights.scene = scene;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+}
+
+/** Apply a map's background and a lighting preset. Returns the headlight so the game can follow the jet. */
+export function applyLighting(map, preset = 'day') {
+  const p = LIGHTING[preset] ?? LIGHTING.day, scene = lights.scene;
+  if (!scene) return null;
+  const background = new THREE.Color(map?.theme?.background ?? 0xd6d9ce);
+  if (p.tint !== null) background.lerp(new THREE.Color(p.tint), preset === 'night' ? .88 : .45);
+  scene.background = background; scene.fog.color.copy(background);
+  lights.ambient.color.setHex(p.ambient[0]); lights.ambient.intensity = p.ambient[1];
+  lights.hemi.color.setHex(p.hemi[0]); lights.hemi.groundColor.setHex(p.hemi[1]); lights.hemi.intensity = p.hemi[2];
+  lights.sun.color.setHex(p.sun[0]); lights.sun.intensity = p.sun[1];
+  lights.fill.color.setHex(p.fill[0]); lights.fill.intensity = p.fill[1];
+  lights.headlight.intensity = p.headlight;
+  lights.renderer.toneMappingExposure = p.exposure;
+  return lights.headlight;
 }
 
 /** Asset loading is isolated from init() and the animation loop. */
@@ -92,7 +119,7 @@ export async function loadAirfield(scene, onProgress = () => {}, mapId = 'living
   const placeholder = texture('plaster');
   manager.addHandler(/.*/, { load: () => placeholder, setPath() {}, setResourcePath() {} });
   const progress = e => onProgress(e.total ? e.loaded/e.total : .5);
-  const room = mapId==='dining'
+  const room = map.generator ? buildRoom(map.generator) : mapId==='dining'
     ? (await new GLTFLoader().loadAsync(new URL('../assets/dining-room.glb',import.meta.url).href,progress)).scene
     : await new FBXLoader(manager).loadAsync(new URL('../assets/InteriorTest.fbx',import.meta.url).href,progress);
   // Discard exported cameras and lights; use the predictable browser lighting rig.
@@ -133,7 +160,7 @@ export function prepareAirfield(room,mapId='living') {
   room.traverse(o => {
     if (!o.isMesh) return;
     meshCount++;
-    o.castShadow = true; o.receiveShadow = true;
+    o.castShadow = !o.userData.noCastShadow; o.receiveShadow = true;
     // Per-mesh boxes, never the room's enclosing Box3 (which would collide everywhere).
     const box = new THREE.Box3().setFromObject(o);
     colliders.push({ box, mesh: o });
@@ -142,6 +169,13 @@ export function prepareAirfield(room,mapId='living') {
   const bounds = new THREE.Box3(sourcePoint(...map.sourceBounds[0]),sourcePoint(...map.sourceBounds[1]));
   const surfaceTree = new SurfaceIndex(room);
   const root = new THREE.Group();root.add(room);
+  if(map.spawn){
+    // Generated rooms: derive hangar camera framing from the launch point and heading.
+    const up=new THREE.Vector3(0,1,0),spawn=sourcePoint(...map.spawn),heading=map.heading??0;
+    const offset=(x,y,z)=>spawn.clone().add(new THREE.Vector3(x,y,z).applyAxisAngle(up,heading));
+    return {map,root,room,colliders,bounds,scale,meshCount,surfaceTree,flightArea:bounds.clone(),spawn,heading,
+      showcase:offset(-3,-.6,-6.5),overview:offset(-9,4.5,3),overviewTarget:offset(16,-9,-57),patrol:null};
+  }
   return {map,root,room,colliders,bounds,scale,meshCount,surfaceTree,
     flightArea:mapId==='dining'?new THREE.Box3(sourcePoint(390,0,-1035),sourcePoint(1000,297,-600)):bounds.clone(),
     spawn:mapId==='dining'?sourcePoint(720,150,-990):new THREE.Vector3(-10,16,42),

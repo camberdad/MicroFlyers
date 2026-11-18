@@ -58,7 +58,7 @@ export function updateFlight(state, input, dt) {
   // Like Arrow mode, releasing pitch holds the selected nose attitude. Releasing
   // turn input stops heading change and returns only the wings to level.
   state.currentPitch = THREE.MathUtils.clamp(oldPitch+state.pitchControl*flightConfig.pitchSpeed*sensitivity*dt,-flightConfig.maxPitch,flightConfig.maxPitch);
-  const yawRate = state.turnControl*flightConfig.yawSpeed*sensitivity;
+  const yawRate = state.turnControl*flightConfig.yawSpeed*sensitivity*(state.turnScale??1);
   const desiredBank = THREE.MathUtils.clamp(Math.atan2(state.speed*yawRate,flightConfig.bankGravity),-flightConfig.maxRoll,flightConfig.maxRoll);
   const bankStep = (desiredBank-oldRoll)*(1-Math.exp(-flightConfig.bankResponse*dt));
   state.currentRoll = oldRoll+THREE.MathUtils.clamp(bankStep,-flightConfig.rollSpeed*sensitivity*dt,flightConfig.rollSpeed*sensitivity*dt);
@@ -70,9 +70,10 @@ export function updateFlight(state, input, dt) {
   state.boosting = Boolean(input.boost && !input.brake);
   adjustThrottle(state,-(input.brake?flightConfig.throttleDownRate:0)*dt);
   state.engineThrottle = THREE.MathUtils.lerp(state.engineThrottle,state.throttle,1-Math.exp(-flightConfig.engineResponse*dt));
-  const targetSpeed = input.brake ? FLIGHT.minSpeed : throttleToSpeed(state.engineThrottle)*(state.boosting?flightConfig.rocketMultiplier:1);
+  // V15 engine upgrades scale normal and boosted speed; the airbrake floor is unchanged.
+  const targetSpeed = input.brake ? FLIGHT.minSpeed : throttleToSpeed(state.engineThrottle)*(state.boosting?flightConfig.rocketMultiplier:1)*(state.speedScale??1);
   state.speed = THREE.MathUtils.lerp(state.speed,targetSpeed,1-Math.exp(-(input.brake?4:1.8)*dt));
-  state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed);
+  state.speed = THREE.MathUtils.clamp(state.speed, FLIGHT.minSpeed, FLIGHT.boostSpeed*(state.speedScale??1));
   forward.set(0, 0, -1).applyQuaternion(state.quaternion);
   desiredVelocity.copy(forward).multiplyScalar(state.speed);
   state.velocity.lerp(desiredVelocity, 1 - Math.exp(-3.2 * dt));

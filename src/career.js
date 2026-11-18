@@ -1,4 +1,5 @@
 /** Offline career rules. No accounts, purchases or network services required. */
+import { enemyMix } from './modes.js';
 export const CAREER_ROUNDS = 30;
 export const SAVE_KEY = 'microflyers.career.v1';
 export const MAX_UPGRADE = 5;
@@ -11,6 +12,13 @@ export function roundConfig(value) {
     attacks:round>=3,fireInterval:7-t*5,bulletSpeed:16+t*22,
     damage:4+Math.floor(t*10),aimError:3.5*(1-t)+.2,
     reward:25+5*Math.floor((round-1)/5),planes:true});
+}
+/** V15 enemy archetypes: interceptors from round 6, gunships from 12 and an ace
+ * on the final wave of rounds 10, 20 and 30. Opening rounds stay plain fighters. */
+export function careerMix(round,wave) {
+  const config=roundConfig(round);
+  return enemyMix(config.count,{interceptors:config.round>=6?Math.min(3,Math.floor((config.round-2)/4)):0,
+    gunships:config.round>=12?Math.min(3,Math.floor((config.round-6)/6)):0,ace:config.round%10===0&&wave===config.waves});
 }
 export function upgradeCost(kind,level) {
   if(!['shots','armor'].includes(kind)||!Number.isInteger(level)||level<0||level>=MAX_UPGRADE)return null;
@@ -43,6 +51,15 @@ export class Career {
     const reward=roundConfig(round).reward;
     this.state.gp=Math.min(1_000_000_000,this.state.gp+reward);this.state.kills=Math.min(100_000_000,this.state.kills+1);
     this.save();return reward;
+  }
+  /** GP from other combat modes (Survival, Blitz) lands in the same wallet. */
+  addGP(amount) {
+    const value=Math.max(0,Math.round(Number(amount)||0));
+    this.state.gp=Math.min(1_000_000_000,this.state.gp+value);this.save();return value;
+  }
+  spend(cost) {
+    if(!Number.isInteger(cost)||cost<0||this.state.gp<cost)return false;
+    this.state.gp-=cost;this.save();return true;
   }
   buy(kind) {
     const cost=upgradeCost(kind,this.state[kind]);

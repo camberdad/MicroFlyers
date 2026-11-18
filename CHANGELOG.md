@@ -2,6 +2,19 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V15 — Game modes, four new rooms, high scores and unlocks
+
+- Add three new modes beside Free Fly and Career: Ring Race (time trial through glowing rings, three courses per room with gold/silver/bronze medals), Balloon Blitz (75-second score attack with red, blue, gold and +5s clock balloons and combo multipliers up to x5) and Survival (endless escalating waves with an ace every fifth wave).
+- Add four code-built rooms: 03 The Kitchen, 04 The Kids' Bedroom, 05 The Garage and 06 The Grand Library, each with flyable gaps (bunk beds, open cubbies, a toy-castle gate, under the car, bookcase aisles and chandeliers) and its own launch point.
+- Add local high scores: top-five tables per room for Survival, Blitz and each Ring Race course, a NEW HIGH SCORE badge on results, a Records logbook with callsign, lifetime stats and an unlock roadmap.
+- Add pilot XP and ten ranks. Every mode earns XP; ranks unlock rooms, Balloon Blitz and Survival, engine and missile upgrades, sunset and night lighting and seven paint schemes (Gold Ace also unlocks by finishing Career).
+- Add Engine (top speed and turn rate) and Missile rack (reload, tracking and lock range) upgrade tracks to the hangar, plus a paint shop. GP from Career, Survival and Blitz shares one wallet.
+- Add enemy types: fast interceptors, armored gunships and ace bosses with a health bar. Career opening rounds stay plain, harmless fighters; interceptors join from round 6, gunships from round 12 and an ace guards the final wave of rounds 10, 20 and 30.
+- Add power-ups dropped by destroyed enemies in Survival and Career (round 3+): repair kit, rapid fire, triple shot, shield and instant missile reload.
+- Add bigger explosions with flash and smoke, balloon confetti, camera shake, combo and score readouts, ring waypoint markers and radar targets, and new sound cues for rings, pops, pickups, waves and rank-ups.
+- Validate every Ring Race course with a built-in autopilot that flies it using the real flight model before it is offered; medal times come from that run.
+- Preserve the 30-round career save (microflyers.career.v1), flight controls and handling, both original rooms, prior releases and live updates. New progress saves separately under microflyers.pilot.v1.
+
 ## V14 — Remove the two Living Room trees
 
 - Remove the large tree beside the sofa and the smaller tree by the piano, including their branches and pots.

@@ -53,3 +53,36 @@ export function planWaveSpawns(world,count,random=Math.random) {
   }
   throw new Error('Unable to arrange separated, clear spawns. Please try launching again.');
 }
+
+/** Mid-sortie reinforcements (Survival): appear away from the player, spaced out,
+ * with clear departure lanes. Best effort; returns as many as fit (at least one
+ * try per slot), which never blocks an endless mode in a crowded room.
+ */
+export function planReinforcements(world,playerPosition,count,random=Math.random,{minPlayerGap=16,gap=7}={}) {
+  const enemies=[];
+  for(let i=0;i<count;i++){
+    for(let attempt=0;attempt<160;attempt++){
+      const candidate={position:randomAirPoint(world,random),heading:random()*Math.PI*2};
+      if(candidate.position.distanceTo(playerPosition)<minPlayerGap)continue;
+      if(enemies.some(other=>other.position.distanceTo(candidate.position)<gap))continue;
+      if(!hasDepartureClearance(world,candidate))continue;
+      enemies.push(candidate);break;
+    }
+  }
+  return enemies;
+}
+
+/** Blitz balloon positions: clear air, apart from each other and the player. */
+export function planBalloons(world,count,avoid=[],random=Math.random,{gap=3.2,playerGap=5}={}) {
+  const points=[];
+  for(let i=0;i<count;i++){
+    for(let attempt=0;attempt<120;attempt++){
+      const position=randomAirPoint(world,random);
+      if(avoid.some(p=>p.distanceTo(position)<(p.isPlayer?playerGap:gap)))continue;
+      if(points.some(p=>p.position.distanceTo(position)<gap))continue;
+      if(!isSafePosition(world,position,.9))continue;
+      points.push({position,heading:0});break;
+    }
+  }
+  return points;
+}

@@ -8,6 +8,18 @@ import { GLTFLoader } from '../vendor/three/examples/jsm/loaders/GLTFLoader.js';
 import {Combat} from '../src/combat.js';
 import {roundConfig} from '../src/career.js';
 import {planWaveSpawns,SPAWN_RULES,spawnForward,hasDepartureClearance} from '../src/spawns.js';
+import {generateCourse,COURSES} from '../src/modes.js';
+import {validateCourse,flyCourse} from '../src/autopilot.js';
+
+/** Every Ring Race course must be flown to the finish by the autopilot. */
+function checkCourses(world){
+  for(const {level} of COURSES){
+    const course=generateCourse(world,world.map.id,level,isSafePosition,validateCourse);
+    assert.ok(course.rings.length>=8);assert.ok(course.par.gold<course.par.silver&&course.par.silver<course.par.bronze);
+    assert.ok(course.rings.every(r=>isSafePosition(world,r.position,r.radius)),'rings sit in clear air');
+    assert.ok(validateCourse(world,course).finished,`${world.map.id} course ${level} is completable`);
+  }
+}
 
 function checkCareerSpawns(world){
   const combat=new Combat(new THREE.Scene(),world,{});
@@ -59,6 +71,7 @@ test('the actual supplied FBX parses, normalizes, and has a clear launch positio
   }
   for(const name of ['Tree07_4K','Tree07_4K006','Pot002','Pot003','Pot004'])assert.ok(prepared.room.getObjectByName(name),'other plants stay intact');
   checkCareerSpawns(prepared);
+  checkCourses(prepared);
 });
 
 test('prepared dining OBJ retains its room and furniture with safe launch and drone patrols',async()=>{
@@ -70,6 +83,7 @@ test('prepared dining OBJ retains its room and furniture with safe launch and dr
   assert.ok(isSafePosition(world,world.spawn));
   assert.ok(world.bounds.containsPoint(world.patrol.center));
   checkCareerSpawns(world);
+  checkCourses(world);
   for(let phase=0;phase<Math.PI*2;phase+=.25){
     const position=world.patrol.center.clone().add(new THREE.Vector3(Math.sin(phase)*19,Math.sin(phase*1.7)*1.5,Math.cos(phase)*18));
     assert.ok(isSafePosition(world,position,.6),`patrol phase ${phase}`);

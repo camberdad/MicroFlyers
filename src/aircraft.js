@@ -24,12 +24,13 @@ function shapeMesh(points, material, thickness = .045) {
 }
 
 /** A code-built, swept-wing micro jet. No external aircraft asset required. */
-export function createJet(enemy = false) {
+export function createJet(enemy = false, palette = null) {
   const jet = new THREE.Group();
-  const body = new THREE.MeshStandardMaterial({ color: enemy ? 0xc9654c : 0xe8e9d9, roughness: .42, metalness: .32 });
-  const dark = new THREE.MeshStandardMaterial({ color: 0x243e48, roughness: .35, metalness: .5 });
-  const accent = new THREE.MeshStandardMaterial({ color: enemy ? 0xffb196 : 0xd6f285, roughness: .45, metalness: .25 });
-  const glow = new THREE.MeshBasicMaterial({ color: enemy ? 0xff704c : 0x9cdaff });
+  const body = new THREE.MeshStandardMaterial({ color: palette?.body ?? (enemy ? 0xc9654c : 0xe8e9d9), roughness: .42, metalness: .32 });
+  const dark = new THREE.MeshStandardMaterial({ color: palette?.dark ?? 0x243e48, roughness: .35, metalness: .5 });
+  const accent = new THREE.MeshStandardMaterial({ color: palette?.accent ?? (enemy ? 0xffb196 : 0xd6f285), roughness: .45, metalness: .25 });
+  const glow = new THREE.MeshBasicMaterial({ color: palette?.glow ?? (enemy ? 0xff704c : 0x9cdaff) });
+  jet.userData.paint = { body, dark, accent, glow };
   const fuselage = new THREE.Mesh(new THREE.CylinderGeometry(.065, .13, 1.1, 10), body);
   fuselage.rotation.x = -Math.PI / 2;
   fuselage.position.z = -.08;
@@ -73,6 +74,15 @@ export function createJet(enemy = false) {
   return jet;
 }
 
+/** Repaint the player's jet from a hangar paint scheme. */
+export function paintJet(jet, scheme) {
+  const paint = jet.userData.paint;
+  if (!paint || !scheme) return;
+  paint.body.color.setHex(scheme.body); paint.accent.color.setHex(scheme.accent);
+  paint.dark.color.setHex(scheme.dark); paint.glow.color.setHex(scheme.glow);
+  jet.userData.glowColor = scheme.glow;
+}
+
 /** Held boost brightens both nozzles immediately; flames remain scenery-occluded. */
 export function updateJetExhaust(jet,boosting,throttle=.5,time=0) {
   const exhaust=jet.userData.exhaust;
@@ -82,7 +92,7 @@ export function updateJetExhaust(jet,boosting,throttle=.5,time=0) {
   for(const flame of exhaust.children) {
     flame.scale.set(boosting?1.45:1,length/.36,boosting?1.45:1);
     flame.position.z=.58+length/2;
-    flame.material.color.setHex(boosting?0x82e8ff:0x9cdaff);
+    flame.material.color.setHex(boosting?0x82e8ff:(jet.userData.glowColor??0x9cdaff));
   }
   if(jet.userData.boostGlow) jet.userData.boostGlow.visible=boosting;
 }
