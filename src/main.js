@@ -15,6 +15,51 @@ import { Pilot, PAINTS, UNLOCKS, RANKS, XP, extraUpgradeCost, extraLoadout, MAX_
 import { MODES, MODE_ORDER, COURSES, ENEMY_TYPES, BLITZ, SURVIVAL, survivalWave, pickBalloon, Combo, generateCourse, medalFor, formatTime } from './modes.js';
 import { Pickups, POWERUPS, pickPowerup, RingCourse } from './pickups.js';
 import { validateCourse } from './autopilot.js';
+import { Leaderboard, ONLINE_SIZE } from './leaderboard.js';
+import { VERSION } from './version.js';
+
+const online = new Leaderboard();
+let onlineToken = 0;
+/** Post a finished run (if the pilot shares scores) and show the world top ten. */
+async function showOnlineResult(board,value,detail,format) {
+  const token=++onlineToken,status=$('online-status'),box=$('online-board');
+  box.replaceChildren();
+  if(!online.enabled){status.textContent='';status.classList.add('hidden');return;}
+  status.classList.remove('hidden');
+  status.textContent=pilot.state.shareOnline?'Posting your score to the world leaderboard…':'Loading the world leaderboard…';
+  try{
+    const rank=pilot.state.shareOnline?await online.submit(board,{name:pilot.state.callsign,value,detail,player:pilot.state.playerId,version:VERSION}):null;
+    const rows=await online.top(board,{fresh:true});
+    if(token!==onlineToken)return;
+    status.textContent=!pilot.state.shareOnline?'Score kept on this device · sharing is off in Records.'
+      :rank?`World rank #${rank} as ${pilot.state.callsign}${pilot.state.callsign==='PILOT'?' · set your callsign in Records':''}`:'Score saved locally.';
+    box.replaceChildren(table(`World top ${ONLINE_SIZE}`,rows,format,rank&&rank<=ONLINE_SIZE?rank-1:-1));
+  }catch(error){
+    if(token!==onlineToken)return;
+    console.warn('Online leaderboard unavailable:',error);
+    status.textContent='World leaderboard unreachable · your score is saved on this device.';
+  }
+}
+async function refreshOnlineRecords(map) {
+  const box=$('online-records'),status=$('online-records-status');
+  $('online-records-section').classList.toggle('hidden',!online.enabled);
+  if(!online.enabled)return;
+  status.textContent='Loading world scores…';box.replaceChildren();
+  const boards=[[`survival:${map}`,'Survival'],[`blitz:${map}`,'Balloon Blitz'],...COURSES.map(c=>[`rings:${map}:${c.level}`,`Ring Race · ${c.name}`])];
+  try{
+    const lists=await Promise.all(boards.map(([board])=>online.top(board,{limit:5})));
+    if($('records-map').value!==map)return;
+    box.replaceChildren(...boards.map(([board,label],i)=>table(`World · ${label}`,lists[i],board.startsWith('rings:')?formatTime:v=>Math.round(v).toLocaleString())));
+    status.textContent='Top five worldwide for this room.';
+  }catch(error){status.textContent='World leaderboard unreachable right now.';console.warn(error);}
+}
+async function refreshWorldBest(board,format) {
+  if(!online.enabled||!board)return;
+  try{
+    const [best]=await online.top(board,{limit:1})??[];
+    if(best&&$('record-detail').dataset.board===board)$('record-detail').textContent=$('record-detail').dataset.base+` · World best ${format(best.value)} · ${best.name}`;
+  }catch{/* Local records still show. */}
+}
 
 let storage;
 try{storage=localStorage;}catch{/* Embedded play still works without storage. */}
@@ -194,6 +239,9 @@ function refreshHangar() {
   $('course-picker').classList.toggle('hidden',selectedMode!=='rings');
   const [title,detail]=recordBrief();
   $('record-title').textContent=title;$('record-detail').textContent=detail;
+  const board=selectedMode==='rings'?`rings:${world.map.id}:${selectedCourse}`:['survival','blitz'].includes(selectedMode)?`${selectedMode}:${world.map.id}`:'';
+  $('record-detail').dataset.board=board;$('record-detail').dataset.base=detail;
+  refreshWorldBest(board,selectedMode==='rings'?formatTime:v=>Math.round(v).toLocaleString());
   $('career-progress').textContent=state.completed?'30 / 30 ROUNDS COMPLETE':`ROUND ${state.round} / 30 · WAVE ${state.wave} / ${config.waves}`;
   $('hangar-gp').textContent=`${state.gp.toLocaleString()} GP`;
   $('career-levels').textContent=`Shots ${state.shots}/5 · Armor ${state.armor}/5 · ${config.reward} GP per kill`;
@@ -300,6 +348,8 @@ function refreshRecords() {
     parts.push(table(`Ring Race · ${course.name}${medal?` · ${medal.toUpperCase()}`:''}`,pilot.state.records[`rings:${map}:${course.level}`],formatTime));
   }
   body.replaceChildren(...parts);
+  $('share-online').checked=pilot.state.shareOnline;
+  refreshOnlineRecords(map);
   const roadmap=$('unlock-roadmap');
   roadmap.replaceChildren(...RANKS.map((r,i)=>{
     const li=document.createElement('li'),level=i+1,items=unlocksAtRank(level,level-1).map(unlockLabel);
@@ -566,7 +616,7 @@ function sortieSummary(won) {
 function finishSortie(won) {
   if (mode !== 'playing' || !sortie) return;
   setMode(won ? 'won' : 'lost'); resetInput();
-  const m=sortie.mode,map=sortie.map,stats=[];let recordKey=null,place=-1,format=v=>Math.round(v).toLocaleString();
+  const m=sortie.mode,map=sortie.map,stats=[];let recordKey=null,recordValue=0,recordDetail='',place=-1,format=v=>Math.round(v).toLocaleString();
   let eyebrow,title,detail,again='Fly again',badge='';
   if(m==='career'){
     if(won){career.completeWave(sortie.round,sortie.wave);gainXP(XP.wave);}
@@ -576,13 +626,13 @@ function finishSortie(won) {
     again=career.state.completed?'Career complete':won?`Next · Round ${career.state.round}, wave ${career.state.wave}`:'Retry wave';
     stats.push(['GP earned',`+${sortie.earned}`],['GP banked',career.state.gp.toLocaleString()]);
   }else if(m==='survival'){
-    recordKey=`survival:${map}`;place=pilot.addRecord(recordKey,sortie.score,`Wave ${sortie.wave} · ${combat.kills} kills`);
+    recordKey=`survival:${map}`;recordValue=sortie.score;recordDetail=`Wave ${sortie.wave} · ${combat.kills} kills`;place=pilot.addRecord(recordKey,recordValue,recordDetail);
     eyebrow='SHOT DOWN';title=`You reached wave ${sortie.wave}.`;
     detail=`${combat.kills} enemies destroyed · longest kill chain ${sortie.combo.best}. Your GP is banked.`;
     stats.push(['Score',sortie.score.toLocaleString()],['Wave',sortie.wave],['GP earned',`+${sortie.earned}`]);
   }else if(m==='blitz'){
     const gp=career.addGP(Math.floor(sortie.score/150));sortie.earned+=gp;gainXP(sortie.score*XP.blitzPoints);
-    recordKey=`blitz:${map}`;place=pilot.addRecord(recordKey,sortie.score,`${combat.kills} pops · best combo ${sortie.combo.best}`);
+    recordKey=`blitz:${map}`;recordValue=sortie.score;recordDetail=`${combat.kills} pops · best combo ${sortie.combo.best}`;place=pilot.addRecord(recordKey,recordValue,recordDetail);
     eyebrow='TIME!';title=`${sortie.score.toLocaleString()} points.`;
     detail=`${combat.kills} balloon${combat.kills===1?"":"s"} popped. Longest chain: ${sortie.combo.best} in a row.`;
     stats.push(['Score',sortie.score.toLocaleString()],['Popped',combat.kills],['GP earned',`+${gp}`]);
@@ -590,7 +640,7 @@ function finishSortie(won) {
     const time=elapsed,course=sortie.course,medal=medalFor(time,course.par),key=`${map}:${sortie.level}`;
     const improved=pilot.awardMedal(key,medal);pilot.addStat('courses');
     gainXP(XP.courseFinish+(medal?XP.medal[medal]*(improved?1:.25):0));
-    recordKey=`rings:${map}:${sortie.level}`;format=formatTime;place=pilot.addRecord(recordKey,time,medal?`${medal} medal`:'finished');
+    recordKey=`rings:${map}:${sortie.level}`;format=formatTime;recordValue=time;recordDetail=medal?`${medal} medal`:'finished';place=pilot.addRecord(recordKey,recordValue,recordDetail);
     eyebrow=medal?`${medal.toUpperCase()} MEDAL`:'COURSE COMPLETE';title=formatTime(time);
     detail=`${course.name}: ${course.rings.length} rings. Gold ${formatTime(course.par.gold)} · Silver ${formatTime(course.par.silver)} · Bronze ${formatTime(course.par.bronze)}.${improved&&medal?` New ${medal} medal!`:''}`;
     again='Race again';stats.push(['Time',formatTime(time)],['Medal',medal?capitalize(medal):'—']);
@@ -604,7 +654,8 @@ function finishSortie(won) {
   $('result-stats').replaceChildren(...stats.map(([label,value])=>{const div=document.createElement('div');const s=document.createElement('span');s.textContent=label;const b=document.createElement('strong');b.textContent=String(value);div.append(s,b);return div;}));
   const rank=pilot.rank;
   $('result-rank').textContent=`RANK ${rank.level} · ${rank.name.toUpperCase()} · ${rank.next?`${(rank.next-rank.xp).toLocaleString()} XP to next rank`:'MAX RANK'}`;
-  $('result-board').replaceChildren(...(recordKey?[table('Top 5 · this room',pilot.state.records[recordKey],format,place)]:[]));
+  $('result-board').replaceChildren(...(recordKey?[table('Your top 5 · this room',pilot.state.records[recordKey],format,place)]:[]));
+  if(recordKey)showOnlineResult(recordKey,recordValue,recordDetail,format);else{onlineToken++;$('online-board').replaceChildren();$('online-status').classList.add('hidden');}
   $('again-button').disabled=m==='career'&&career.state.completed;
   $('again-button').firstChild.textContent=again+' ';
   $('again-button').focus();
@@ -748,6 +799,7 @@ function bindEvents() {
   $('records-button').addEventListener('click',openRecords);$('result-records').addEventListener('click',openRecords);
   $('close-records').addEventListener('click',closeRecords);$('records-done').addEventListener('click',closeRecords);
   $('records-map').addEventListener('change',refreshRecords);
+  $('share-online').addEventListener('change',()=>pilot.setShareOnline($('share-online').checked));
   $('callsign-save').addEventListener('click',()=>{$('callsign-input').value=pilot.setCallsign($('callsign-input').value);refreshRecords();refreshHangar();});
   $('callsign-input').addEventListener('keydown',event=>{if(event.key==='Enter')$('callsign-save').click();});
   $('map-select').addEventListener('change',selectAirfield);

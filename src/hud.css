@@ -149,3 +149,7 @@
 @media(max-width:800px){.records-body{grid-template-columns:1fr}}
 @media(max-width:540px){.intro,.intro[class]{top:86px;left:16px;right:16px;max-width:none}.intro .mode-picker{grid-template-columns:1fr 1fr}.pilot-card{grid-template-columns:1fr auto}.pilot-xp{grid-column:1/3;grid-row:2}}
 @media(prefers-reduced-motion:reduce){.result-badge,#timer.urgent,.rank-toast{animation:none}}
+.online-status{display:block;margin:10px 0 2px;font-size:10px;letter-spacing:.4px;color:#9fe2d8}
+.online-records{margin-top:8px}
+.share-toggle{display:flex;align-items:center;gap:9px;font-size:11px;color:#d6e3d0;margin:4px 0 6px;cursor:pointer}
+.share-toggle input{width:16px;height:16px;accent-color:#ddf484}

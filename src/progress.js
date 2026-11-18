@@ -97,10 +97,18 @@ export function cleanPilot(raw) {
   const paint=PAINTS.some(p=>p.id===input.paint)?input.paint:'classic';
   return {schema:1,callsign:cleanCallsign(input.callsign),xp:integer(input.xp,0,100_000_000,0),
     engine:integer(input.engine,0,MAX_EXTRA_UPGRADE,0),missiles:integer(input.missiles,0,MAX_EXTRA_UPGRADE,0),
-    paint,lighting:['day','sunset','night'].includes(input.lighting)?input.lighting:'day',stats,records,medals};
+    paint,lighting:['day','sunset','night'].includes(input.lighting)?input.lighting:'day',stats,records,medals,
+    // Random, anonymous id that lets the online board keep one best score per browser.
+    playerId:UUID.test(input.playerId)?input.playerId.toLowerCase():newPlayerId(),shareOnline:input.shareOnline!==false};
 }
 
 const MEDAL_ORDER={bronze:1,silver:2,gold:3};
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export function newPlayerId(){
+  if(globalThis.crypto?.randomUUID)return globalThis.crypto.randomUUID();
+  const b=Array.from({length:16},()=>Math.floor(Math.random()*256));b[6]=b[6]&15|64;b[8]=b[8]&63|128;
+  const h=b.map(v=>v.toString(16).padStart(2,'0')).join('');return `${h.slice(0,8)}-${h.slice(8,12)}-${h.slice(12,16)}-${h.slice(16,20)}-${h.slice(20)}`;
+}
 
 export class Pilot {
   constructor(storage) {
@@ -142,6 +150,7 @@ export class Pilot {
   }
   setPaint(id,career){if(!this.paintUnlocked(id,career))return false;this.state.paint=id;this.save();return true;}
   setLighting(id){if(!UNLOCKS.lighting[id]||!this.isUnlocked('lighting',id))return false;this.state.lighting=id;this.save();return true;}
+  setShareOnline(value){this.state.shareOnline=Boolean(value);this.save();return this.state.shareOnline;}
   setCallsign(value){this.state.callsign=cleanCallsign(value);this.save();return this.state.callsign;}
   /** Insert a score into a local top-5 table. Returns its 0-based place or -1. */
   addRecord(key,value,detail='') {

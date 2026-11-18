@@ -44,6 +44,10 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 
 **High scores.** Survival and Blitz keep a top-five score table per room; every Ring Race course keeps its five best times and your best medal. Results show a NEW HIGH SCORE badge and the table. Set your callsign in Records. Scores are local to this browser (no accounts or online leaderboard). New progress saves under `microflyers.pilot.v1`; the V9 career save `microflyers.career.v1` is unchanged.
 
+**World leaderboard (optional).** When `src/online-config.js` holds a Supabase project URL and its public publishable key, finished Survival, Blitz and Ring Race runs post to a world leaderboard. Results show your world rank and the world top 10, Records shows the world top 5 for every board in the selected room, and the hangar shows the world best. Only the callsign, score and a short run summary are shared, with a random anonymous browser id so each player keeps one best entry per board. Players can turn sharing off in Records. With no project configured, or when offline, everything stays local.
+
+Setup: create a free Supabase project, open SQL Editor, run `supabase/leaderboard.sql`, then copy the Project URL and publishable key (never the secret or service_role key) into `src/online-config.js`. The database accepts writes only through `submit_score()`, which validates the board, callsign and value, rejects implausible scores, rate-limits each player and keeps their best. Scores come from the browser, so a determined player could still post a fake score within those limits; remove bad rows in Supabase's Table Editor (`scores` table). Free Supabase projects pause after a week without traffic; resume the project in the dashboard if the board shows as unreachable.
+
 **Fair courses.** Ring courses are generated deterministically per room and course, so best times stay comparable. Each course is flown end to end by a built-in autopilot using the real flight model and scenery contact before it is offered, and its medal times come from that run.
 
 ## Fly
@@ -116,6 +120,7 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/progress.js` | Pilot XP/ranks, unlock table, Engine/Missile upgrades, paints, lifetime stats and local high-score tables |
 | `src/rooms.js` | Code-built Kitchen, Kids' Bedroom, Garage and Grand Library rooms |
 | `src/pickups.js` | Power-up drops and the visible Ring Race course |
+| `src/leaderboard.js`, `src/online-config.js`, `supabase/leaderboard.sql` | Optional Supabase world leaderboard client, its public connection settings and the validated database schema |
 | `src/autopilot.js` | Autopilot that proves each ring course is completable and sets its medal times |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
 | `src/hud.css`, `src/hud-math.js` | Footage-inspired HUD layout, compass calculations and cardinal directions |
