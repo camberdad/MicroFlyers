@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { Leaderboard } from '../src/leaderboard.js';
 import { ONLINE_LEADERBOARD } from '../src/online-config.js';
-import { Pilot, cleanPilot } from '../src/progress.js';
+import { Pilot } from '../src/progress.js';
 
 const memory=()=>{const data=new Map();return {getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)};};
-/** Fake Supabase REST endpoint that records every request. */
+const config={apiKey:'AIzaTestKey',projectId:'microflyers-test'};
+/** Fake Firebase REST endpoints that record every request. */
 function fakeApi(handler) {
   const calls=[];
   const fetch=async (url,options={})=>{
@@ -15,55 +16,67 @@ function fakeApi(handler) {
   };
   return {fetch,calls};
 }
+const doc=(name,value,detail='')=>({document:{fields:{name:{stringValue:name},value:{doubleValue:value},detail:{stringValue:detail},updatedAt:{timestampValue:'2026-11-18T01:00:00Z'}}}});
 
-test('the leaderboard stays off until a secure project is configured',()=>{
-  assert.equal(ONLINE_LEADERBOARD.url===''||ONLINE_LEADERBOARD.url.startsWith('https://'),true,'shipped config is blank or HTTPS');
+test('the leaderboard stays off until a Firebase web app is configured',()=>{
   const fetch=async()=>{};
-  assert.equal(new Leaderboard({url:'',key:''},fetch).enabled,false);
-  assert.equal(new Leaderboard({url:'http://evil.example',key:'k'},fetch).enabled,false,'no plain HTTP to remote hosts');
-  assert.equal(new Leaderboard({url:'https://x.supabase.co/',key:'k'},fetch).enabled,true);
-  assert.equal(new Leaderboard({url:'http://localhost:4174',key:'k'},fetch).enabled,true,'local test server allowed');
+  assert.ok(!ONLINE_LEADERBOARD.apiKey||ONLINE_LEADERBOARD.projectId,'shipped config is blank or complete');
+  assert.equal(new Leaderboard({},fetch).enabled,false);
+  assert.equal(new Leaderboard({apiKey:'k',projectId:'bad/../id'},fetch).enabled,false);
+  assert.equal(new Leaderboard(config,fetch).enabled,true);
 });
 
-test('top scores query the right board and order, clean names and cache briefly',async()=>{
-  const api=fakeApi(()=>({body:[{name:'ace<b>',value:'28.5',detail:'gold medal',updated_at:'2026-11-18T01:00:00Z'},{name:'BOB',value:'oops'}]}));
-  const board=new Leaderboard({url:'https://x.supabase.co',key:'sb_publishable_abc'},api.fetch);
+test('top scores run a Firestore query on the board, ordered for the mode, and are cleaned and cached',async()=>{
+  const api=fakeApi(()=>({body:[doc('ace<b>',28.5,'gold medal'),{document:{fields:{name:{stringValue:'BAD'},value:{stringValue:'x'}}}},{readTime:'t'}]}));
+  const board=new Leaderboard(config,api.fetch,memory());
   const rows=await board.top('rings:kitchen:2');
-  assert.match(api.calls[0].url,/\/rest\/v1\/scores\?select=name,value,detail,updated_at&board=eq\.rings%3Akitchen%3A2&order=value\.asc/);
-  assert.equal(api.calls[0].options.headers.apikey,'sb_publishable_abc');
-  assert.equal(api.calls[0].options.headers.Authorization,undefined,'publishable keys are not sent as bearer tokens');
+  assert.match(api.calls[0].url,/projects\/microflyers-test\/databases\/\(default\)\/documents\/boards\/rings%3Akitchen%3A2:runQuery\?key=AIzaTestKey$/);
+  const query=JSON.parse(api.calls[0].options.body).structuredQuery;
+  assert.equal(query.orderBy[0].direction,'ASCENDING');assert.equal(query.from[0].collectionId,'entries');
   assert.deepEqual(rows,[{name:'ACEB',value:28.5,detail:'gold medal',date:'2026-11-18'}]);
   await board.top('rings:kitchen:2');assert.equal(api.calls.length,1,'cached');
-  await board.top('blitz:living');assert.match(api.calls[1].url,/order=value\.desc/);
-  assert.equal(await board.top('evil:board'),null);assert.equal(api.calls.length,2);
+  await board.top('blitz:living');assert.equal(JSON.parse(api.calls[1].options.body).structuredQuery.orderBy[0].direction,'DESCENDING');
+  assert.equal(await board.top('evil:board'),null);
 });
 
-test('submissions go through the validating RPC and return a world rank',async()=>{
-  const api=fakeApi((url)=>url.endsWith('/rpc/submit_score')?{body:3}:{body:[]});
-  const board=new Leaderboard({url:'https://x.supabase.co',key:'eyJhbGciOi.legacy.anon'},api.fetch);
-  await board.top('blitz:living');
-  const rank=await board.submit('blitz:living',{name:'ace one',value:4200.12345,detail:'40 pops',player:'p-1',version:16});
-  assert.equal(rank,3);
-  const call=api.calls[1];
-  assert.equal(call.options.method,'POST');assert.equal(call.options.headers.Authorization,'Bearer eyJhbGciOi.legacy.anon');
-  assert.deepEqual(JSON.parse(call.options.body),{p_board:'blitz:living',p_name:'ACE ONE',p_value:4200.123,p_detail:'40 pops',p_player:'p-1',p_version:16});
-  await board.top('blitz:living');assert.equal(api.calls.length,3,'a submission refreshes the cached board');
-  assert.equal(await board.submit('blitz:living',{name:'X',value:NaN,player:'p'}),null);
-  assert.equal(await board.submit('blitz:living',{name:'X',value:5}),null,'needs a player id');
+test('submitting signs in anonymously once, writes only improvements with a server timestamp, and returns rank',async()=>{
+  let stored=null;
+  const api=fakeApi((url,options)=>{
+    if(url.includes('accounts:signUp'))return {body:{idToken:'id-1',refreshToken:'refresh-1',localId:'uid-1',expiresIn:'3600'}};
+    if(url.includes('/entries/uid-1?'))return stored?{body:{fields:{value:{doubleValue:stored}}}}:{status:404,body:{error:{message:'not found'}}};
+    if(url.endsWith(':commit?key=AIzaTestKey')){stored=JSON.parse(options.body).writes[0].update.fields.value.doubleValue;return {body:{}};}
+    if(url.includes(':runAggregationQuery'))return {body:[{result:{aggregateFields:{better:{integerValue:'2'}}}}]};
+    return {body:[]};
+  });
+  const storage=memory(),board=new Leaderboard(config,api.fetch,storage);
+  assert.equal(await board.submit('blitz:living',{name:'ace one',value:4200.12345,detail:'40 pops',version:16}),3);
+  const commit=api.calls.find(c=>c.url.includes(':commit'));
+  assert.equal(commit.options.headers.Authorization,'Bearer id-1');
+  const write=JSON.parse(commit.options.body).writes[0];
+  assert.equal(write.update.name,'projects/microflyers-test/databases/(default)/documents/boards/blitz:living/entries/uid-1');
+  assert.deepEqual(write.update.fields,{board:{stringValue:'blitz:living'},name:{stringValue:'ACE ONE'},value:{doubleValue:4200.123},detail:{stringValue:'40 pops'},uid:{stringValue:'uid-1'},version:{integerValue:'16'}});
+  assert.deepEqual(write.updateTransforms,[{fieldPath:'updatedAt',setToServerValue:'REQUEST_TIME'}]);
+  const aggregation=JSON.parse(api.calls.find(c=>c.url.includes(':runAggregationQuery')).options.body);
+  assert.equal(aggregation.structuredAggregationQuery.structuredQuery.where.fieldFilter.op,'GREATER_THAN');
+  const commits=()=>api.calls.filter(c=>c.url.includes(':commit')).length;
+  await board.submit('blitz:living',{name:'ACE',value:100});
+  assert.equal(commits(),1,'a worse run is not written');
+  assert.equal(api.calls.filter(c=>c.url.includes('signUp')).length,1,'session reused');
+  assert.match(storage.getItem('microflyers.online.v1'),/refresh-1/,'refresh token kept for the next visit');
 });
 
-test('server errors surface as failures so the game can fall back to local scores',async()=>{
-  const api=fakeApi(()=>({status:400,body:{message:'implausible score'}}));
-  const board=new Leaderboard({url:'https://x.supabase.co',key:'k'},api.fetch);
-  await assert.rejects(board.submit('blitz:living',{name:'A',value:1e9,player:'p'}),/400/);
-  await assert.rejects(board.top('blitz:living'),/400/);
+test('a returning player refreshes their stored session instead of creating a new identity',async()=>{
+  const storage=memory();storage.setItem('microflyers.online.v1',JSON.stringify({projectId:'microflyers-test',refreshToken:'old',uid:'uid-9'}));
+  const api=fakeApi(url=>url.includes('securetoken')?{body:{id_token:'id-9',refresh_token:'new',user_id:'uid-9',expires_in:'3600'}}:{body:{}});
+  const session=await new Leaderboard(config,api.fetch,storage).signIn();
+  assert.equal(session.uid,'uid-9');assert.ok(!api.calls.some(c=>c.url.includes('signUp')));
 });
 
-test('each browser gets a stable anonymous player id and can opt out of sharing',()=>{
-  const storage=memory(),pilot=new Pilot(storage);
-  assert.match(pilot.state.playerId,/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
-  assert.equal(pilot.state.shareOnline,true);
-  pilot.setShareOnline(false);
-  const again=new Pilot(storage);assert.equal(again.state.playerId,pilot.state.playerId);assert.equal(again.state.shareOnline,false);
-  assert.notEqual(cleanPilot({schema:1,playerId:'not-a-uuid'}).playerId,'not-a-uuid');
+test('server errors surface so the game falls back to local scores; players can opt out of sharing',async()=>{
+  const api=fakeApi(()=>({status:403,body:{error:{message:'PERMISSION_DENIED'}}}));
+  const board=new Leaderboard(config,api.fetch,memory());
+  await assert.rejects(board.top('blitz:living'),/403/);
+  await assert.rejects(board.submit('blitz:living',{name:'A',value:5}),/403/);
+  const storage=memory(),pilot=new Pilot(storage);assert.equal(pilot.state.shareOnline,true);
+  pilot.setShareOnline(false);assert.equal(new Pilot(storage).state.shareOnline,false);
 });

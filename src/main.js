@@ -28,7 +28,7 @@ async function showOnlineResult(board,value,detail,format) {
   status.classList.remove('hidden');
   status.textContent=pilot.state.shareOnline?'Posting your score to the world leaderboard…':'Loading the world leaderboard…';
   try{
-    const rank=pilot.state.shareOnline?await online.submit(board,{name:pilot.state.callsign,value,detail,player:pilot.state.playerId,version:VERSION}):null;
+    const rank=pilot.state.shareOnline?await online.submit(board,{name:pilot.state.callsign,value,detail,version:VERSION}):null;
     const rows=await online.top(board,{fresh:true});
     if(token!==onlineToken)return;
     status.textContent=!pilot.state.shareOnline?'Score kept on this device · sharing is off in Records.'

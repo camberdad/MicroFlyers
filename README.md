@@ -2,7 +2,7 @@
 
 Small jet. Big room. A browser-based Three.js flying and dogfighting game with six interior airfields: two supplied rooms (**InteriorTest.fbx** and **room.obj**, prepared as a compact GLB) and four code-built rooms, plus five game modes, local high scores and a rank/unlock system.
 
-**Current release: V15.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
+**Current release: V16.** Play/share/embed: **https://camberdad.github.io/MicroFlyers/**
 
 Source: https://github.com/camberdad/MicroFlyers · [Release changes](CHANGELOG.md) · [Iframe snippet](embed.html)
 
@@ -44,9 +44,9 @@ The interface adapts to smaller screens, but flight is designed for a desktop ke
 
 **High scores.** Survival and Blitz keep a top-five score table per room; every Ring Race course keeps its five best times and your best medal. Results show a NEW HIGH SCORE badge and the table. Set your callsign in Records. Scores are local to this browser (no accounts or online leaderboard). New progress saves under `microflyers.pilot.v1`; the V9 career save `microflyers.career.v1` is unchanged.
 
-**World leaderboard (optional).** When `src/online-config.js` holds a Supabase project URL and its public publishable key, finished Survival, Blitz and Ring Race runs post to a world leaderboard. Results show your world rank and the world top 10, Records shows the world top 5 for every board in the selected room, and the hangar shows the world best. Only the callsign, score and a short run summary are shared, with a random anonymous browser id so each player keeps one best entry per board. Players can turn sharing off in Records. With no project configured, or when offline, everything stays local.
+**World leaderboard (V16).** Finished Survival, Blitz and Ring Race runs also post to a world leaderboard on Google Firebase (project `microflyers-78b92`). Results show your world rank and the world top 10, Records shows the world top 5 for every board in the selected room, and the hangar shows the world best. Only the callsign, score and a short run summary are shared. Each browser signs in anonymously (no account, email or password), so a player can only change their own entry. Untick sharing in Records to keep scores on your device. Offline, or if Firebase is unreachable, local high scores keep working.
 
-Setup: create a free Supabase project, open SQL Editor, run `supabase/leaderboard.sql`, then copy the Project URL and publishable key (never the secret or service_role key) into `src/online-config.js`. The database accepts writes only through `submit_score()`, which validates the board, callsign and value, rejects implausible scores, rate-limits each player and keeps their best. Scores come from the browser, so a determined player could still post a fake score within those limits; remove bad rows in Supabase's Table Editor (`scores` table). Free Supabase projects pause after a week without traffic; resume the project in the dashboard if the board shows as unreachable.
+How it is protected: `firestore.rules` (published in the Firebase console, Firestore > Rules) lets anyone read, but a write must come from the signed-in owner of that entry, contain only the expected fields, use a valid board and callsign (A–Z, 0–9, space, _ and -), stay within plausibility limits (ring times 3–3600 s, Blitz up to 300,000, Survival up to 20,000,000), arrive at least 5 seconds after that player's previous post, and improve their best. Nothing can be deleted by players. Scores still come from the browser, so a determined player could post a fake score within those limits; remove it in the Firebase console (Firestore > Data > boards). The public web config lives in `src/online-config.js`; Firebase web API keys are designed to be public. To change the rules, edit `firestore.rules` and publish the same text in the console.
 
 **Fair courses.** Ring courses are generated deterministically per room and course, so best times stay comparable. Each course is flown end to end by a built-in autopilot using the real flight model and scenery contact before it is offered, and its medal times come from that run.
 
@@ -120,7 +120,7 @@ Left click fires the gun. Right click launches a homing missile toward a living 
 | `src/progress.js` | Pilot XP/ranks, unlock table, Engine/Missile upgrades, paints, lifetime stats and local high-score tables |
 | `src/rooms.js` | Code-built Kitchen, Kids' Bedroom, Garage and Grand Library rooms |
 | `src/pickups.js` | Power-up drops and the visible Ring Race course |
-| `src/leaderboard.js`, `src/online-config.js`, `supabase/leaderboard.sql` | Optional Supabase world leaderboard client, its public connection settings and the validated database schema |
+| `src/leaderboard.js`, `src/online-config.js`, `firestore.rules` | Firebase world leaderboard (Firestore REST + anonymous Auth), its public web config and the published security rules |
 | `src/autopilot.js` | Autopilot that proves each ring course is completable and sets its medal times |
 | `src/ui.js` | Gun-line reticle, target marker, telemetry, radar, notifications |
 | `src/hud.css`, `src/hud-math.js` | Footage-inspired HUD layout, compass calculations and cardinal directions |

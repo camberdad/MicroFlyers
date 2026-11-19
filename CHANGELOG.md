@@ -2,6 +2,14 @@
 
 Stable play/embed URL: https://camberdad.github.io/MicroFlyers/
 
+## V16 — World leaderboard on Firebase
+
+- Add an online world leaderboard for Survival, Balloon Blitz and every Ring Race course in all six rooms, hosted on Google Firebase (Firestore with anonymous sign-in, no player accounts).
+- Show your world rank and the world top 10 on the results screen, the world top 5 per board in Records, and the world best in the hangar.
+- Share only the callsign, score and a short run summary; add a Records opt-out that keeps scores on this device.
+- Protect the board with Firestore security rules: owner-only writes, validated fields and callsigns, plausibility limits, a 5-second rate limit, improve-only updates and no deletes.
+- Keep local high scores, career saves and every mode working offline or when Firebase is unreachable.
+
 ## V15 — Game modes, four new rooms, high scores and unlocks
 
 - Add three new modes beside Free Fly and Career: Ring Race (time trial through glowing rings, three courses per room with gold/silver/bronze medals), Balloon Blitz (75-second score attack with red, blue, gold and +5s clock balloons and combo multipliers up to x5) and Survival (endless escalating waves with an ace every fifth wave).

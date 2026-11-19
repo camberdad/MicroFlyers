@@ -1,22 +1,17 @@
 {
-  "version": "V15",
-  "versionNumber": 15,
-  "assetVersion": "v15-a09db5acb33e",
-  "publishedAtUtc": "2026-11-18T03:53:10.229Z",
+  "version": "V16",
+  "versionNumber": 16,
+  "assetVersion": "v16-1fb0360a5397",
+  "publishedAtUtc": "2026-11-19T00:33:50.916Z",
   "gameUrl": "https://camberdad.github.io/MicroFlyers/",
-  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v15/",
-  "description": "Game modes, four new rooms, high scores and unlocks",
+  "versionUrl": "https://camberdad.github.io/MicroFlyers/versions/v16/",
+  "description": "World leaderboard on Firebase",
   "changes": [
-    "Add three new modes beside Free Fly and Career: Ring Race (time trial through glowing rings, three courses per room with gold/silver/bronze medals), Balloon Blitz (75-second score attack with red, blue, gold and +5s clock balloons and combo multipliers up to x5) and Survival (endless escalating waves with an ace every fifth wave).",
-    "Add four code-built rooms: 03 The Kitchen, 04 The Kids' Bedroom, 05 The Garage and 06 The Grand Library, each with flyable gaps (bunk beds, open cubbies, a toy-castle gate, under the car, bookcase aisles and chandeliers) and its own launch point.",
-    "Add local high scores: top-five tables per room for Survival, Blitz and each Ring Race course, a NEW HIGH SCORE badge on results, a Records logbook with callsign, lifetime stats and an unlock roadmap.",
-    "Add pilot XP and ten ranks. Every mode earns XP; ranks unlock rooms, Balloon Blitz and Survival, engine and missile upgrades, sunset and night lighting and seven paint schemes (Gold Ace also unlocks by finishing Career).",
-    "Add Engine (top speed and turn rate) and Missile rack (reload, tracking and lock range) upgrade tracks to the hangar, plus a paint shop. GP from Career, Survival and Blitz shares one wallet.",
-    "Add enemy types: fast interceptors, armored gunships and ace bosses with a health bar. Career opening rounds stay plain, harmless fighters; interceptors join from round 6, gunships from round 12 and an ace guards the final wave of rounds 10, 20 and 30.",
-    "Add power-ups dropped by destroyed enemies in Survival and Career (round 3+): repair kit, rapid fire, triple shot, shield and instant missile reload.",
-    "Add bigger explosions with flash and smoke, balloon confetti, camera shake, combo and score readouts, ring waypoint markers and radar targets, and new sound cues for rings, pops, pickups, waves and rank-ups.",
-    "Validate every Ring Race course with a built-in autopilot that flies it using the real flight model before it is offered; medal times come from that run.",
-    "Preserve the 30-round career save (microflyers.career.v1), flight controls and handling, both original rooms, prior releases and live updates. New progress saves separately under microflyers.pilot.v1."
+    "Add an online world leaderboard for Survival, Balloon Blitz and every Ring Race course in all six rooms, hosted on Google Firebase (Firestore with anonymous sign-in, no player accounts).",
+    "Show your world rank and the world top 10 on the results screen, the world top 5 per board in Records, and the world best in the hangar.",
+    "Share only the callsign, score and a short run summary; add a Records opt-out that keeps scores on this device.",
+    "Protect the board with Firestore security rules: owner-only writes, validated fields and callsigns, plausibility limits, a 5-second rate limit, improve-only updates and no deletes.",
+    "Keep local high scores, career saves and every mode working offline or when Firebase is unreachable."
   ],
   "files": [
     {
@@ -51,8 +46,8 @@
     },
     {
       "path": "index.html",
-      "bytes": 18589,
-      "sha256": "cdfa931d64d5008c3e436c9145e611680981eaa65a6badb64fe91e8b1c69b228"
+      "bytes": 19295,
+      "sha256": "4bbb487c669f10cc6b224090b67e334cb1cfc9cbe1e8e643de7a5945feea8446"
     },
     {
       "path": "src/aircraft.js",
@@ -91,8 +86,8 @@
     },
     {
       "path": "src/hud.css",
-      "bytes": 29019,
-      "sha256": "e91049067685ba6a06cd7e620fe7d298b16cd2a91e5855a8bf387ac2c4716c34"
+      "bytes": 29329,
+      "sha256": "5b20a822787e2ca23d35b75897b4d9e2817086bec8255f43b0bb5d40f393d090"
     },
     {
       "path": "src/input.js",
@@ -100,9 +95,14 @@
       "sha256": "c6d2916386772402e476a4de21d998d2dd0561c54b81d460fce01cb7d74c425e"
     },
     {
+      "path": "src/leaderboard.js",
+      "bytes": 7812,
+      "sha256": "33da451dbb4905c207ad01f07b8a018a646a0df0c7578d58c5da3a801b02e320"
+    },
+    {
       "path": "src/main.js",
-      "bytes": 52485,
-      "sha256": "fdfe6bd650c4b6d74f27b0c8ece3383e73d2d7250b646fed5be63267498ae5d6"
+      "bytes": 56093,
+      "sha256": "977ab06042bc4ee849f9d7ce045a2dabc23a5fc87729e69dd4f455f92977bf66"
     },
     {
       "path": "src/maps.js",
@@ -115,14 +115,19 @@
       "sha256": "c6eae47b2007cd00f09b1ab4f34fe6c73913a70743a4efcb0200f694eb552e29"
     },
     {
+      "path": "src/online-config.js",
+      "bytes": 444,
+      "sha256": "15ea68b6500c7b6b0efc64bba441ceaf89b05b6c393cd0446c66236a10712bd9"
+    },
+    {
       "path": "src/pickups.js",
       "bytes": 5001,
       "sha256": "77b274329d8e48d4d875af9b6086360d550e29f826838719db7fb733e1f4f632"
     },
     {
       "path": "src/progress.js",
-      "bytes": 8732,
-      "sha256": "724cf787281856899d7853fc7bb5501643dc46ca50d7784f66d0e253ab6f36e2"
+      "bytes": 8881,
+      "sha256": "87ef791ff138249685bc478ec1aed1ea2192e63cae2bd0b07b14a520fbfe9caf"
     },
     {
       "path": "src/rooms.js",
@@ -162,7 +167,7 @@
     {
       "path": "src/version.js",
       "bytes": 135,
-      "sha256": "67395504daf50b0fd73605637d377390a522f2d39d1813448b7e72a8796204c1"
+      "sha256": "782f0da633216daeb4306e6a0119e85dbe56e6c231fef7cc07ad7357af9874f7"
     },
     {
       "path": "src/world.js",

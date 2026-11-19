@@ -1,0 +1,43 @@
+rules_version = '2';
+// MicroFlyers world leaderboard. Paste into Firebase console > Firestore >
+// Rules and Publish. Anyone may read; a signed-in (anonymous) player may only
+// write their own entry, with validated fields, plausible values, at most one
+// post every 5 seconds, and only to improve their best. Nothing can be deleted.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /boards/{board}/entries/{uid} {
+      allow read: if true;
+      allow create: if owner(uid) && valid(board, uid, request.resource.data);
+      allow update: if owner(uid) && valid(board, uid, request.resource.data)
+        && request.time > resource.data.updatedAt + duration.value(5, 's')
+        && improves(board, request.resource.data.value, resource.data.value);
+      allow delete: if false;
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+    function rings(board) {
+      return board.matches('^rings:.*');
+    }
+    function improves(board, next, previous) {
+      return rings(board) ? next < previous : next > previous;
+    }
+    function valid(board, uid, d) {
+      return board.matches('^(survival|blitz|rings):[a-z]+(:[1-3])?$')
+        && d.keys().hasOnly(['board', 'name', 'value', 'detail', 'uid', 'version', 'updatedAt'])
+        && d.keys().hasAll(['board', 'name', 'value', 'detail', 'uid', 'version', 'updatedAt'])
+        && d.board == board && d.uid == uid
+        && d.name is string && d.name.matches('^[A-Z0-9 _-]{1,12}$')
+        && d.detail is string && d.detail.size() <= 60
+        && d.version is int
+        && d.updatedAt == request.time
+        && (d.value is float || d.value is int) && d.value >= 0
+        && (rings(board) ? d.value >= 3 && d.value <= 3600
+            : board.matches('^blitz:.*') ? d.value <= 300000 : d.value <= 20000000);
+    }
+  }
+}
